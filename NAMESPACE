@@ -2,7 +2,7 @@
 
 export(varsel_explore)
 import(ggplot2)
-import(glmproj)
+import(projpred)
 importFrom(DT,dataTableOutput)
 importFrom(DT,dataTableProxy)
 importFrom(DT,datatable)

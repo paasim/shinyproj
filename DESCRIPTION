@@ -1,13 +1,13 @@
 Package: shinyproj
-Title: Interactive model selection using glmproj
+Title: Interactive model selection using projpred
 Version: 0.0.1
 Authors: Markus Paasiniemi
-Description: Perform interactive model selection using the glmproj-package.
+Description: Perform interactive model selection using the projpred-package.
 Depends:
     R (>= 3.1.2)
 Imports:
     shiny (>= 1.0.1),
-    glmproj,
+    projpred,
     ggplot2 (>= 2.2.1),
     rstanarm,
     tidyr,

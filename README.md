@@ -1,12 +1,11 @@
 # shinyproj
 
-An R package for interactive model selection using [glmproj][].
+An R package for interactive model selection using [projpred][].
 
 Installation
 ------------
 
-    # shinyproj depends on the development version of glmproj
-    devtools::install_github('paasim/glmproj', ref = 'development')
+    devtools::install_github('stan-dev/projpred')
     devtools::install_github('paasim/shinyproj')
 
 
@@ -14,7 +13,7 @@ Usage
 -----
 
     library(rstanarm)
-    library(glmproj)
+    library(projpred)
     library(shinyproj)
     options(mc.cores = parallel::detectCores())
     
@@ -41,5 +40,5 @@ Usage
 
 
 
-[glmproj]:  https://github.com/paasim/glmproj
+[projpred]:  https://github.com/stan-dev/projpred
 
