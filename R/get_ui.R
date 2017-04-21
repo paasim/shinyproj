@@ -12,7 +12,9 @@ get_ui <- function() {
       width = 5,
       fluidRow(
         plotOutput('diff_heat', width = '650px', height = '800px',
-                   click = 'size_click')
+                   click = 'size_click'),
+        em(h6('Select a suggested model by clicking a column corresponding',
+              'to the desired model size.', align = 'center', style = 'color:grey'))
       )),
     column(
       width = 7,

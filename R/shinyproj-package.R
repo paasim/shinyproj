@@ -3,8 +3,8 @@
 #' @docType package
 #' @name shinyproj
 #'
-#' @importFrom shiny runApp fluidPage fluidRow column h3 h4 h5 plotOutput reactive
-#' observeEvent debounce selectInput renderPlot em renderUI uiOutput div
+#' @importFrom shiny runApp fluidPage fluidRow column h3 h4 h5 h6 plotOutput reactive
+#' observeEvent debounce selectInput renderPlot em renderUI uiOutput div radioButtons
 #' @import projpred
 #' @import ggplot2
 #' @importFrom rstanarm get_x

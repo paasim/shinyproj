@@ -46,7 +46,7 @@ gen_heat_bg <- function(pct, col, rows) {
       geom_text(aes(label = round(val, 2)), fontface = 'bold') +
       coord_cartesian(expand = FALSE) +
       scale_y_discrete(limits = rev(levels(pct$var))) +
-      scale_color_manual(values = c('white', '#B1BED9')) +
+      scale_color_manual(values = c('white', 'black')) + #'#B1BED9')) +
       labs(x = 'Model size', y = '',
            title = 'Fraction of cv-folds that select the given variable') +
       scale_fill_manual(breaks = sort(unique(pct$val_grp) + 1),
@@ -169,8 +169,8 @@ ppd_plot <- function(ppd, y) {
 
 #' @importFrom scales pretty_breaks
 hist_plot <- function(hist) {
-  ggplot(hist) +
-    geom_histogram(aes(x = value), bins = 15) +
+  ggplot(hist, aes(x = value)) +
+    geom_histogram(color = 'black', fill = '#B1BED9', bins = 15) +
     facet_wrap(~ key) +
     labs(y = '', title = 'Histograms of the selected variables') +
     scale_x_continuous(breaks = pretty_breaks(n = 3)) +
