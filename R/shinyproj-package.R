@@ -10,7 +10,7 @@
 #' @importFrom rstanarm get_x
 #' @importFrom tidyr gather separate "%>%"
 #' @importFrom DT datatable renderDataTable formatStyle dataTableOutput
-#' styleInterval dataTableProxy selectCells
+#' styleInterval dataTableProxy selectCells dataTableAjax reloadData
 #' @importFrom formattable formattable formatter area color_tile as.datatable
 #' style
 #' @importFrom RColorBrewer brewer.pal

@@ -1,22 +1,21 @@
 get_ui <- function() {
-  width_sub <- '400px'
+  width_sub <- '450px'
   height_sub <- '350px'
   fluidPage(
     fluidRow(
-      column(4, h3('model size selection', align = 'center'),
+      column(5, h3('model size selection', align = 'center'),
              uiOutput('statistic')),
-      column(8, h3('edit the selected submodel', align = 'center'),
+      column(7, h3('edit the selected submodel', align = 'center'),
              dataTableOutput('vars'))
     ),
     column(
-      width = 4,
+      width = 5,
       fluidRow(
-        plotOutput('diff_full', width = '500px', height = '300px'),
-        h5('Fraction of cv-folds that select the given variable',
-           align = 'center'),
-        div(dataTableOutput('heat')))),
+        plotOutput('diff_heat', width = '650px', height = '800px',
+                   click = 'size_click')
+      )),
     column(
-      width = 8,
+      width = 7,
       column(
         width = 6, align = 'center', style = 'border-left: dotted #d3d3d3;',
         fluidRow(
@@ -27,8 +26,11 @@ get_ui <- function() {
         width = 6, align = 'center', style = 'border-left: dotted #d3d3d3;',
         fluidRow(
           h4('submodel diagnostics', align = 'center'),
-          plotOutput('ppc', width = width_sub, height = height_sub),
-          plotOutput('statplot', width = width_sub, height = height_sub)))
+          plotOutput('statplot', width = width_sub, height = height_sub),
+          plotOutput('diag', width = width_sub, height = height_sub),
+          radioButtons('plot_type', 'Plot type', selected = 'hist', inline = T,
+                       choices = c('Variable histograms' = 'hist',
+                                   'Predictive density' = 'ppd'))))
     )
   )
 }
