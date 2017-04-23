@@ -3,8 +3,13 @@
 #' Visualise the results of the variable selection using shiny.
 #'
 #' @param fit_cv An object returned by \link[=cv_varsel]{cv_varsel}.
+#' @param nv Maximum number of variables in the submodel. Defaults to
+#' \code{min(12, length(fit_cv$varsel$chosen))}.
 #'
 
+#' @import projpred
+#' @importFrom tidyr "%>%"
+#' @importFrom shiny runApp
 #' @export
 varsel_explore <- function(fit_cv, nv = min(12, length(fit_cv$varsel$chosen))) {
 

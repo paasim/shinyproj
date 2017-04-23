@@ -8,6 +8,9 @@ varsel_explore(fit_cv, nv = min(12, length(fit_cv$varsel$chosen)))
 }
 \arguments{
 \item{fit_cv}{An object returned by \link[=cv_varsel]{cv_varsel}.}
+
+\item{nv}{Maximum number of variables in the submodel. Defaults to
+\code{min(12, length(fit_cv$varsel$chosen))}.}
 }
 \description{
 Visualise the results of the variable selection using shiny.

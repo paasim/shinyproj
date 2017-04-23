@@ -1,3 +1,7 @@
+#' @importFrom shiny fluidPage fluidRow column uiOutput plotOutput em h3 h4 h5
+#' radioButtons
+#' @importFrom DT dataTableOutput
+
 get_ui <- function() {
   width_sub <- '450px'
   height_sub <- '350px'
@@ -9,12 +13,12 @@ get_ui <- function() {
              dataTableOutput('vars'))
     ),
     column(
-      width = 5,
+      width = 5, align = 'center',
       fluidRow(
         plotOutput('diff_heat', width = '650px', height = '800px',
                    click = 'size_click'),
-        em(h6('Select a suggested model by clicking a column corresponding',
-              'to the desired model size.', align = 'center', style = 'color:grey'))
+        em('Select a suggested model by clicking a column corresponding to',
+           'the desired model size.', style = 'color:grey')
       )),
     column(
       width = 7,

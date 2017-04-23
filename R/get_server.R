@@ -1,3 +1,11 @@
+#' @importFrom shiny reactive observeEvent renderText debounce renderUI
+#' renderPlot selectInput
+#' @importFrom DT dataTableAjax reloadData selectCells renderDataTable
+#' dataTableProxy
+#' @importFrom tidyr gather
+#' @importFrom graphics plot
+#' @importFrom stats setNames
+
 get_server <- function(data) {
   function(input, output, session) {
 
@@ -13,8 +21,6 @@ get_server <- function(data) {
       reloadData(proxy_vars, resetPaging = T, clearSelection = 'none')
       selectCells(proxy_vars, matrix(c(rep(1,sizeval), 1:sizeval-1), ncol = 2))
     })
-    output$tk1 <- renderText(length(sel()))
-    output$tk2 <- renderText(names(sel()))
 
     sel_quick <- reactive(
       if(is.null(input$vars_cells_selected)) {
@@ -28,29 +34,14 @@ get_server <- function(data) {
 
     # dendro + scatter selection
     sel_corr <- reactive(
-      null_if_cond(identical(sel(), 0), {
-        ord <- order(data$dist[sel(), not_sel()])[1:4]
-        cols <- ((ord-1) %/% length(sel())) + 1
-        rows <- ((ord-1) %% length(sel())) + 1
-        data$ch[data$ch %in% c(sel()[rows], not_sel()[cols])]
-      })
-    )
-    sel_x <- reactive(
-      null_if_cond(identical(sel(), 0), data$x[, sel_corr(), drop = FALSE])
-    )
-    sel_pairs <- reactive(
-      null_if_cond(identical(sel(), 0), {
-        xx <- as.data.frame(sel_x())
-        names <- combn(colnames(xx), 2, simplify = F)
-        pairs <- do.call(rbind, lapply(names, function(n) {
-          setNames(cbind(xx[, n], n[1], n[2]), c('x','y','xn','yn'))
-        }))
-      })
+      null_if_cond(identical(sel(), 0),
+                   sel_corrs(data$dist, data$ch, sel(), not_sel(), 4))
     )
     sel_clust <- reactive(
-      null_if_cond(identical(sel(), 0), {
-        data$dist[sel_corr(), sel_corr()] %>% as.dist %>% hclust %>% hc2arr
-      })
+      null_if_cond(is.null(sel_corr()), clust_fun(data$dist, sel_corr()))
+    )
+    sel_pairs <- reactive(
+      null_if_cond(is.null(sel_corr()), pairs_fun(data$x, sel_corr()))
     )
 
     # projection
@@ -72,9 +63,9 @@ get_server <- function(data) {
       })
     )
     sel_diff <- reactive({
-      null_if_cond(identical(sel(), 0) || all(sel() == data$ch[seq_along(sel())]), {
-        eval_stat(sel_proj(), sug_proj(), data$x, data$fit$varsel$d_test,
-                  statistic()) %>% data.frame %>% gather
+      null_if_cond(identical(sel(), 0) || all(sel() %in% data$ch[seq_along(sel())]), {
+        eval_stat(sel_proj(), sug_proj(), data$x, data$d_test, statistic()) %>%
+          data.frame %>% gather
       })
     })
     stat_diff <- reactive(ifelse(is.null(sel_diff()), 0, mean(sel_diff()$value)))
@@ -93,7 +84,7 @@ get_server <- function(data) {
     output$diff_heat <- renderPlot({
       comb_left(diff_full(), heat(), data$pct, sel()) %>% plot
     })
-    output$vars <- DT::renderDataTable(
+    output$vars <- renderDataTable(
       gen_vars_table(data$pctch, data$sug)
     )
     proxy_vars <- dataTableProxy(session$ns('vars'))
@@ -112,7 +103,7 @@ get_server <- function(data) {
 
     output$diag <- renderPlot(
       if(!is.null(sel_ppd())) {
-        ppd_plot(sel_ppd(), data$fit$varsel$d_test$y)
+        ppd_plot(sel_ppd(), data$d_test$y)
       } else if(!is.null(sel_hist())) {
         hist_plot(sel_hist())
       } else {
