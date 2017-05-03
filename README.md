@@ -1,5 +1,7 @@
 # shinyproj
 
+[![Build Status](https://travis-ci.org/paasim/shinyproj.svg?branch=development)](https://travis-ci.org/paasim/shinyproj)
+
 An R package for interactive model selection using [projpred][].
 
 Installation
