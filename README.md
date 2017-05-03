@@ -7,7 +7,6 @@ An R package for interactive model selection using [projpred][].
 Installation
 ------------
 
-    devtools::install_github('stan-dev/projpred')
     devtools::install_github('paasim/shinyproj')
 
 
