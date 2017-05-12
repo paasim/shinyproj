@@ -1,10 +1,11 @@
 # Miscellanneous functions
 
 #' @importFrom rstanarm get_x
-#' @importFrom stats cor setNames
+#' @importFrom magrittr "%>%"
+#' @importFrom stats cor setNames nobs
 extract_data <- function(fit, nv) {
-  x <- get_x(fit)
-  x <- x[, as.logical(attr(x, 'assign'))]
+  x <- matrix(get_x(fit), nrow = nobs(fit))
+  if (attr(fit$terms, 'intercept')) x <- x[, -1]
   dist <- 1 - abs(cor(x))
   stat_arr <- boot_stats(fit$varsel, 1:nv)
   ch <- with(fit$varsel, setNames(chosen, chosen_names))
@@ -13,7 +14,7 @@ extract_data <- function(fit, nv) {
   stat_def <- switch(fit$family$family,
                      'gaussian' = 'mse', 'binomial' = 'pctcorr', 'mlpd')
   proj <- project(fit, nv = seq_along(ch))
-  pctch <- round(fit$varsel$pctch, 2)
+  pctch <- round(fit$varsel$pctch, 2) %>% as_tibble()
   pct <- get_pct_arr(pctch, nv)
 
   list(fit = fit, x = x, dist = dist, stat_arr = stat_arr, nv = nv, sug = sug,
@@ -22,14 +23,18 @@ extract_data <- function(fit, nv) {
 }
 
 #' @importFrom stats as.dist hclust
+#' @importFrom magrittr "%>%"
 clust_fun <- function(dist, sel_corr) {
-  dist[sel_corr, sel_corr] %>% as.dist %>% hclust %>% hc2arr
+  res <- dist[sel_corr, sel_corr] %>% as.dist() %>% hclust() %>% hc2arr()
+  list(df = res$df, labs = names(sel_corr)[res$order])
 }
 
-
+#' @importFrom magrittr "%>%"
+#' @importFrom tibble tibble
+#' @importFrom dplyr bind_rows
 hc2arr <- function(hc) {
-  cols <- c('x1', 'yd1', 'x2', 'yd2', 'yu')
-  mat <- matrix(NA, length(hc$height), 5, dimnames = list(NULL, cols))
+  mat <- matrix(NA, length(hc$height), 5,
+                dimnames = list(NULL, c('x1', 'yd1', 'x2', 'yd2', 'yu')))
 
   fneg <- function(x) c(order(hc$order)[x], 0)
   fpos <- function(x) c(mean(mat[x, c('x1', 'x2')]), mat[x, 'yu'])
@@ -38,28 +43,30 @@ hc2arr <- function(hc) {
 
   for(i in 1:nrow(mat)) mat[i, ] <- f0(i)
 
-  res <- do.call(rbind, lapply(1:nrow(mat), function(i) {
-    rbind(c(rep(mat[i,'x1'], 2), mat[i,'yd1'], mat[i,'yu']),
-          c(rep(mat[i,'x2'], 2), mat[i,'yd2'], mat[i,'yu']),
-          c(mat[i,'x1'], mat[i,'x2'], rep(mat[i,'yu'], 2)))
-  }))
-  colnames(res) <- c('x1', 'x2', 'y1', 'y2')
-  list(df = as.data.frame(res), labs = hc$labels[hc$order])
+  res <- lapply(1:nrow(mat), function(i)
+    tibble(x1 = mat[i, c('x1', 'x2', 'x1')], x2 = mat[i, c('x1', 'x2', 'x2')],
+           y1 = mat[i, c('yd1', 'yd2', 'yu')], y2 = mat[i, rep('yu', 3)])
+  ) %>% bind_rows()
+  list(df = res, order = hc$order)
 }
 
-validate_varsel <- function(fit_cv) !is.null(fit_cv$varsel$ssize)
+validate_varsel <- function(fit_cv) {
+  !is.null(fit_cv$varsel$ssize)
+}
 
-#' @importFrom tidyr gather
+#' @importFrom tidyr gather_
+#' @importFrom tibble as_tibble
+#' @importFrom magrittr "%>%"
 get_pct_arr <- function(pctch, nv) {
-  pctch[1:nv, ] %>% as.data.frame %>%
-    gather('var', 'val', 2:ncol(pctch), factor_key = T)
+  gather_(pctch[1:nv, ], 'var', 'val', names(pctch)[1:nv+1], factor_key = T)
 }
 
 #' @importFrom DT datatable formatStyle styleInterval
 #' @importFrom htmltools tags
 #' @importFrom stats setNames
+#' @importFrom magrittr "%>%"
 gen_vars_table <- function(pctch, sug) {
-  arr <- setNames(pctch[sug, ], colnames(pctch))[-1] %>% t %>% data.frame
+  arr <- pctch[sug, -1]
   op <- list(searching = F, paging = F, bInfo = F, ordering = F, autoWidth = T)
   sels <- matrix(c(rep(1, sug), 1:sug - 1), sug)
   capt <- tags$caption(style = 'caption-side: bottom; text-align: center;',
@@ -75,23 +82,26 @@ sel_corrs <- function(dist, ch, sel, not_sel, n) {
   ord <- order(dist[sel, not_sel])[1:n]
   cols <- ((ord-1) %/% length(sel)) + 1
   rows <- ((ord-1) %% length(sel)) + 1
-  ch[ch %in% c(sel[rows], not_sel[cols])]
+  ch[ch %in% c(sel[rows], not_sel[cols])] 
 }
 
 #' @importFrom utils combn
-#' @importFrom stats setNames
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr bind_rows
+#' @importFrom magrittr "%>%"
 pairs_fun <- function(x, sel_corr) {
-  x <- x[, sel_corr, drop = FALSE] %>% as.data.frame()
-  names <- combn(colnames(x), 2, simplify = F)
-  do.call(rbind, lapply(names, function(n) {
-    setNames(cbind(x[, n], n[1], n[2]), c('x','y','xn','yn'))
-  }))
+  combn(sel_corr, 2, simplify = F) %>%
+    lapply(function(i)
+      tibble(x1 = x[, i[1]], x2 = x[, i[2]],
+             n1 = rep(x = names(i)[1], nrow(x)),
+             n2 = rep(x = names(i)[2], nrow(x)))
+    ) %>% bind_rows()
 }
 
 #' @importFrom RColorBrewer brewer.pal
 get_col_brks <- function() {
   list(breaks = seq(5e-3, 1-5e-3, length.out = 7),
-       pal = brewer.pal(11, 'RdBu')[3:10])
+      pal = brewer.pal(11, 'RdBu')[3:10])
 }
 
 null_if_cond <- function(cond, expr) if(cond) NULL else expr

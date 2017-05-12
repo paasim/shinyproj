@@ -8,7 +8,7 @@ get_ui <- function() {
   fluidPage(
     fluidRow(
       column(5, h3('model size selection', align = 'center'),
-             uiOutput('statistic')),
+             uiOutput('stat')),
       column(7, h3('edit the selected submodel', align = 'center'),
              dataTableOutput('vars'))
     ),

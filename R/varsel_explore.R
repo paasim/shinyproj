@@ -8,7 +8,7 @@
 #'
 
 #' @import projpred
-#' @importFrom tidyr "%>%"
+#' @importFrom magrittr "%>%"
 #' @importFrom shiny runApp
 #' @export
 varsel_explore <- function(fit_cv, nv = min(12, length(fit_cv$varsel$chosen))) {

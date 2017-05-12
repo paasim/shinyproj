@@ -9,8 +9,8 @@ theme_proj <- function() {
         plot.title = element_text(size = 18, face = 'bold', hjust = 0.6))
 }
 
-diff_plot <- function(stat_arr, nv, statistic, sel_size, stat_diff) {
-  df <- stat_arr[stat_arr$stat == statistic, ]
+diff_plot <- function(stat_arr, nv, stat, sel_size, stat_diff) {
+  df <- stat_arr[stat_arr$stat == stat, ]
   df_diff <- df[df$size == sel_size, c('size', 'val')]
   if(!is.null(stat_diff)) df_diff$val <- df_diff$val + stat_diff
 
@@ -25,15 +25,15 @@ diff_plot <- function(stat_arr, nv, statistic, sel_size, stat_diff) {
       scale_x_continuous(breaks = 1:nv) +
       scale_color_manual(values = c('black', '#B1BED9')) +
       scale_size_manual(values = c(2.5, 3)) +
-      labs(y = paste('Difference in', statistic, 'to the full model'),
+      labs(y = paste('Difference in', stat, 'to the full model'),
            x = '', title = 'Performance difference to the full model') +
-      bayesplot::theme_default() +
+      theme_default() +
       theme_proj() +
       theme(strip.text = element_blank(),
             axis.text.x = element_blank(),
             legend.position = 'none',
             plot.background = element_rect(fill = 'white', color = 'white'))) %>%
-    ggplotGrob
+    ggplotGrob()
 }
 
 gen_heat_bg <- function(pct, col, rows) {
@@ -58,7 +58,7 @@ gen_heat_bg <- function(pct, col, rows) {
       theme(legend.position = 'none',
             axis.ticks.x = element_blank(),
             axis.text.x = element_blank())) %>%
-    ggplotGrob
+    ggplotGrob()
 }
 
 gen_dummy_bg <- function(pct, inds) {
@@ -74,7 +74,7 @@ gen_dummy_bg <- function(pct, inds) {
             axis.ticks.x = element_blank(),
             axis.text.x = element_blank(),
             strip.background = element_blank())) %>%
-    ggplotGrob
+    ggplotGrob()
 }
 
 #' @importFrom grid unit.pmax
@@ -121,17 +121,17 @@ dend_plot <- function(cl) {
     scale_x_continuous(breaks = 1:length(cl$labs), labels = cl$labs) +
     scale_y_continuous(labels = function(x) 1-x) +
     labs(x = '', y = 'correlation') +
-    bayesplot::theme_default() +
+    theme_default() +
     theme_proj()
 }
 
 pairs_plot <- function(pairs) {
-  ggplot(pairs, aes_(x = ~x, y = ~y)) +
+  ggplot(pairs, aes_(x = ~x1, y = ~x2)) +
     geom_point() +
     geom_smooth(color = 'darkred', method = 'lm', formula = y ~ x, se = F) +
-    facet_grid(yn ~ xn) +
+    facet_grid(n2 ~ n1) +
     labs(x = '', y = '') +
-    bayesplot::theme_default() +
+    theme_default() +
     theme_proj() +
     theme(axis.text = element_text(color = 'white'))
 }
@@ -147,7 +147,7 @@ ppd_plot <- function(ppd, y) {
     scale_color_manual(values = c('black', '#B1BED9')) +
     coord_cartesian(expand = FALSE) +
     labs(title = 'Samples from the predictive distribution') +
-    bayesplot::theme_default() +
+    theme_default() +
     theme_proj() +
     theme(axis.text.y = element_text(color = 'white'),
           axis.ticks.y = element_line(color = 'white'),
@@ -168,13 +168,14 @@ hist_plot <- function(hist) {
           axis.ticks.y = element_line(color = 'white'))
 }
 
-stat_plot <- function(sel_diff, statistic, ns) {
-  ggplot(sel_diff, aes_(y = ~value, x = '')) +
+#' @importFrom tibble tibble
+stat_plot <- function(sel_diff, stat, ns) {
+  ggplot(tibble(y = sel_diff), aes_(y = ~y, x = '')) +
     stat_ydensity(geom = 'violin',
                   draw_quantiles = 0.5, fill = '#B1BED9') +
     labs(title = paste('Performance difference to the best model of size', ns),
-         x = '', y = paste('Difference in', statistic)) +
-    bayesplot::theme_default() +
+         x = '', y = paste('Difference in', stat)) +
+    theme_default() +
     theme_proj() +
     theme(axis.ticks.x = element_line(color = 'white'))
 }
