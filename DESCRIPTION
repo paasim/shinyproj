@@ -1,6 +1,6 @@
 Package: shinyproj
 Title: Interactive model selection using projpred
-Version: 0.1.0
+Version: 0.1.1
 Author:
     Markus Paasiniemi [aut]
 Maintainer:
@@ -11,7 +11,7 @@ Depends:
     R (>= 3.1.2)
 Imports:
     shiny (>= 1.0.1),
-    projpred (>= 0.5.0),
+    projpred (>= 0.5.1),
     ggplot2 (>= 2.2.1),
     scales,
     gtable,
@@ -26,7 +26,8 @@ Imports:
     htmltools (>= 0.3.5),
     stats,
     utils
-Remotes: github::stan-dev/projpred@development
+Remotes:
+    github::stan-dev/projpred
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

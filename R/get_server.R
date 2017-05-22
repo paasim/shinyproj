@@ -49,14 +49,14 @@ get_server <- function(data) {
       if (!is.null(sel())) project(data$fit, vind = sel())
     )
     sel_ppd <- reactive(
-      if (!is.null(sel_proj()) && (plot_type() == 'ppd'))
+      if (!is.null(sel_proj()) && (plot_type() == "ppd"))
         proj_predict(sel_proj(), data$x) %>% t() %>% as_tibble() %>% gather()
     )
     sel_hist <- reactive(
-      if (!is.null(sel_proj()) && (plot_type() == 'hist')) {
-        with(sel_proj(),
-             setNames(object = as_tibble(t(beta)), nm = ind_names) %>% gather())
-    })
+      if (!is.null(sel_proj()) && (plot_type() == "hist")) {
+        with(sel_proj(), setNames(object = as_tibble(t(beta)),
+                                  nm = names(vind)) %>% gather())
+      })
     sel_diff <- reactive({
       if (!is.null(sel()) && any(!(sel() %in% data$ch[seq_along(sel())])))
         eval_stat(sel_proj(), sug_proj(), data$x, data$d_test, stat())
@@ -65,7 +65,7 @@ get_server <- function(data) {
 
     # LHS plot(s)
     output$stat <- renderUI(
-      selectInput('stat', label = 'Summary statistic', width = '25%',
+      selectInput("stat", label = "Summary statistic", width = "25%",
                   choices = data$stat_vals, selected = data$stat_def)
     )
     diff_full <- reactive({
@@ -80,7 +80,7 @@ get_server <- function(data) {
     output$vars <- renderDataTable(
       gen_vars_table(data$pctch, data$sug)
     )
-    proxy_vars <- dataTableProxy(session$ns('vars'))
+    proxy_vars <- dataTableProxy(session$ns("vars"))
 
     # RHS plots
     output$dendro <- renderPlot(

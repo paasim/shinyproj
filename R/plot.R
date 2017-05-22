@@ -12,7 +12,7 @@ theme_proj <- function() {
 diff_plot <- function(stat_arr, nv, stat, sel_size, stat_diff) {
   df <- stat_arr[stat_arr$stat == stat, ]
   df_diff <- df[df$size == sel_size, c('size', 'val')]
-  if(!is.null(stat_diff)) df_diff$val <- df_diff$val + stat_diff
+  if (!is.null(stat_diff)) df_diff$val <- df_diff$val + stat_diff
 
   (ggplot(df, aes_(x = ~size, y = ~val)) +
       geom_errorbar(aes_(ymin = ~lq, ymax = ~uq), width = 0.2, alpha = 0.5) +
@@ -39,38 +39,39 @@ diff_plot <- function(stat_arr, nv, stat, sel_size, stat_diff) {
 gen_heat_bg <- function(pct, col, rows) {
   col_brks <- get_col_brks()
   pct$val_grp <- as.character(sapply(pct$val, function(x) sum(x >= col_brks$breaks)))
-  if(identical(rows, 0)) rows <- pct$var[1]
+  if (identical(rows, 0)) rows <- pct$var[1]
   pct$sel <- (pct$size == col) & (pct$var %in% rows)
   brks <- sort(unique(as.numeric(pct$val_grp)) + 1)
 
   (ggplot(pct, aes_(x = ~size, y = ~var)) +
       geom_tile(aes_(fill = ~val_grp, color = ~sel),
                 width = 1, height = 0.9, size = 1) +
-      facet_grid(. ~ size, scales = 'free_x', switch = 'x') +
+      facet_grid(. ~ size, scales = "free_x", switch = "x") +
       geom_text(aes_(label = ~val, fontface = ~sel+1)) +
       coord_cartesian(expand = FALSE) +
       scale_y_discrete(limits = rev(levels(pct$var))) +
-      scale_color_manual(values = c('white', 'black')) + #'#B1BED9')) +
-      labs(x = 'Model size', y = '',
-           title = 'Fraction of cv-folds that select the given variable') +
+      scale_color_manual(values = c("white", "black")) +
+      labs(x = "Model size", y = "",
+           title = "Fraction of cv-folds that select the given variable") +
       scale_fill_manual(breaks = brks, values = col_brks$pal[brks]) +
       theme_proj() +
-      theme(legend.position = 'none',
+      theme(legend.position = "none",
             axis.ticks.x = element_blank(),
-            axis.text.x = element_blank())) %>%
+            axis.text.x = element_blank(),
+            panel.background=element_blank())) %>%
     ggplotGrob()
 }
 
 gen_dummy_bg <- function(pct, inds) {
   len <- ifelse(identical(inds, 0), 0, length(inds))
   (ggplot(pct, aes_(x = ~size, y = ~var)) +
-      facet_grid(. ~ size, scales = 'free_x', switch = 'x') +
+      facet_grid(. ~ size, scales = "free_x", switch = "x") +
       geom_rect(aes_(fill = (~size == len)),
                 xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
-      scale_fill_manual(values = c('#F6F6F6', '#B1BED9')) +
+      scale_fill_manual(values = c("#F6F6F6", "#B1BED9")) +
       coord_cartesian(expand = FALSE) +
       theme_proj() +
-      theme(legend.position = 'none',
+      theme(legend.position = "none",
             axis.ticks.x = element_blank(),
             axis.text.x = element_blank(),
             strip.background = element_blank())) %>%
@@ -86,13 +87,13 @@ comb_left <- function(diff, heat, pct, inds) {
   diff$widths[2:3] <- new_width
   heat_sel$widths[2:3] <- new_width
   # New gtable with space for the three plots plus a right-hand margin
-  gtable(widths = unit(1, 'null'), heights = unit(c(0.4, 0.6), 'null')) %>%
+  gtable(widths = unit(1, "null"), heights = unit(c(0.4, 0.6), "null")) %>%
     gtable_add_grob(diff, 1, 1) %>% gtable_add_grob(heat_sel, 2, 1)
 }
 
 comb_heat <- function(heat, dummy) {
-  panels <- grepl(pattern = 'panel', dummy$layout$name)
-  strips <- grepl(pattern = 'strip-b', dummy$layout$name)
+  panels <- grepl(pattern = "panel", dummy$layout$name)
+  strips <- grepl(pattern = "strip-b", dummy$layout$name)
   dummy$layout$t[panels] <- dummy$layout$t[panels] + 1
   dummy$layout$b[panels] <- dummy$layout$b[panels] + 1
   new_strips <- gtable_select(dummy, panels | strips)
@@ -110,7 +111,7 @@ gtable_select <- function (x, ...) {
 gtable_stack <- function(g1, g2) {
   g1$grobs <- c(g1$grobs, g2$grobs)
   g1$layout$z <- g1$layout$z - max(g1$layout$z)
-  g1$layout$name <- 'g2'
+  g1$layout$name <- "g2"
   g1$layout <- rbind(g1$layout, g2$layout)
   g1
 }
@@ -120,7 +121,7 @@ dend_plot <- function(cl) {
     geom_segment() +
     scale_x_continuous(breaks = 1:length(cl$labs), labels = cl$labs) +
     scale_y_continuous(labels = function(x) 1-x) +
-    labs(x = '', y = 'correlation') +
+    labs(x = "", y = "correlation") +
     theme_default() +
     theme_proj()
 }
@@ -128,29 +129,29 @@ dend_plot <- function(cl) {
 pairs_plot <- function(pairs) {
   ggplot(pairs, aes_(x = ~x1, y = ~x2)) +
     geom_point() +
-    geom_smooth(color = 'darkred', method = 'lm', formula = y ~ x, se = F) +
+    geom_smooth(color = "darkred", method = "lm", formula = y ~ x, se = F) +
     facet_grid(n2 ~ n1) +
-    labs(x = '', y = '') +
+    labs(x = "", y = "") +
     theme_default() +
     theme_proj() +
-    theme(axis.text = element_text(color = 'white'))
+    theme(axis.text = element_text(color = "white"))
 }
 
 ppd_plot <- function(ppd, y) {
   ggplot(mapping = aes_(x = ~value)) +
-    stat_density(aes_(group = ~key, color = 'yrep'),
-                 data = ppd, geom = 'line', position = 'identity',
+    stat_density(aes_(group = ~key, color = "yrep"),
+                 data = ppd, geom = "line", position = "identity",
                  size = 0.25, alpha = 0.3) +
-    stat_density(aes_(color = 'y'), geom = 'line',
-                 position = 'identity', size = 0.8,
+    stat_density(aes_(color = "y"), geom = "line",
+                 position = "identity", size = 0.8,
                  data = data.frame(value = y)) +
-    scale_color_manual(values = c('black', '#B1BED9')) +
+    scale_color_manual(values = c("black", "#B1BED9")) +
     coord_cartesian(expand = FALSE) +
-    labs(title = 'Samples from the predictive distribution') +
+    labs(title = "Samples from the predictive distribution") +
     theme_default() +
     theme_proj() +
-    theme(axis.text.y = element_text(color = 'white'),
-          axis.ticks.y = element_line(color = 'white'),
+    theme(axis.text.y = element_text(color = "white"),
+          axis.ticks.y = element_line(color = "white"),
           axis.title = element_blank(), legend.title = element_blank(),
           legend.position = c(0.9, 0.9))
 }
@@ -158,24 +159,24 @@ ppd_plot <- function(ppd, y) {
 #' @importFrom scales pretty_breaks
 hist_plot <- function(hist) {
   ggplot(hist, aes_(x = ~value)) +
-    geom_histogram(color = 'black', fill = '#B1BED9', bins = 15) +
+    geom_histogram(color = "black", fill = "#B1BED9", bins = 15) +
     facet_wrap(~ key) +
-    labs(y = '', title = 'Histograms of the selected variables') +
+    labs(y = "", title = "Histograms of the selected variables") +
     scale_x_continuous(breaks = pretty_breaks(n = 3)) +
     theme_bw() +
     theme_proj() +
-    theme(axis.text.y = element_text(color = 'white'),
-          axis.ticks.y = element_line(color = 'white'))
+    theme(axis.text.y = element_text(color = "white"),
+          axis.ticks.y = element_line(color = "white"))
 }
 
 #' @importFrom tibble tibble
 stat_plot <- function(sel_diff, stat, ns) {
-  ggplot(tibble(y = sel_diff), aes_(y = ~y, x = '')) +
-    stat_ydensity(geom = 'violin',
-                  draw_quantiles = 0.5, fill = '#B1BED9') +
-    labs(title = paste('Performance difference to the best model of size', ns),
-         x = '', y = paste('Difference in', stat)) +
+  ggplot(tibble(y = sel_diff), aes_(y = ~y, x = "")) +
+    stat_ydensity(geom = "violin",
+                  draw_quantiles = 0.5, fill = "#B1BED9") +
+    labs(title = paste("Performance difference to the best model of size", ns),
+         x = "", y = paste("Difference in", stat)) +
     theme_default() +
     theme_proj() +
-    theme(axis.ticks.x = element_line(color = 'white'))
+    theme(axis.ticks.x = element_line(color = "white"))
 }

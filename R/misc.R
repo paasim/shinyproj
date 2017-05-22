@@ -5,10 +5,10 @@
 #' @importFrom stats cor setNames nobs
 extract_data <- function(fit, nv) {
   x <- matrix(get_x(fit), nrow = nobs(fit))
-  if (attr(fit$terms, 'intercept')) x <- x[, -1]
+  if (attr(fit$terms, 'intercept')) x <- x[, -1, drop = FALSE]
   dist <- 1 - abs(cor(x))
   stat_arr <- boot_stats(fit$varsel, 1:nv)
-  ch <- with(fit$varsel, setNames(chosen, chosen_names))
+  ch <- fit$varsel$vind
   sug <- fit$varsel$ssize
   stat_vals <- unique(stat_arr$stat)
   stat_def <- switch(fit$family$family,
@@ -38,10 +38,10 @@ hc2arr <- function(hc) {
 
   fneg <- function(x) c(order(hc$order)[x], 0)
   fpos <- function(x) c(mean(mat[x, c('x1', 'x2')]), mat[x, 'yu'])
-  fx <- function(x) if(x<0) fneg(abs(x)) else fpos(x)
+  fx <- function(x) if (x<0) fneg(abs(x)) else fpos(x)
   f0 <- function(i) c(sapply(hc$merge[i, ], fx), hc$height[i])
 
-  for(i in 1:nrow(mat)) mat[i, ] <- f0(i)
+  for (i in 1:nrow(mat)) mat[i, ] <- f0(i)
 
   res <- lapply(1:nrow(mat), function(i)
     tibble(x1 = mat[i, c('x1', 'x2', 'x1')], x2 = mat[i, c('x1', 'x2', 'x2')],
@@ -82,7 +82,7 @@ sel_corrs <- function(dist, ch, sel, not_sel, n) {
   ord <- order(dist[sel, not_sel])[1:n]
   cols <- ((ord-1) %/% length(sel)) + 1
   rows <- ((ord-1) %% length(sel)) + 1
-  ch[ch %in% c(sel[rows], not_sel[cols])] 
+  ch[ch %in% c(sel[rows], not_sel[cols])]
 }
 
 #' @importFrom utils combn
@@ -101,7 +101,12 @@ pairs_fun <- function(x, sel_corr) {
 #' @importFrom RColorBrewer brewer.pal
 get_col_brks <- function() {
   list(breaks = seq(5e-3, 1-5e-3, length.out = 7),
-      pal = brewer.pal(11, 'RdBu')[3:10])
+       pal = brewer.pal(11, "RdBu")[3:10])
 }
 
 null_if_cond <- function(cond, expr) if(cond) NULL else expr
+
+.onAttach <- function(...) {
+  ver <- utils::packageVersion("shinyproj")
+  packageStartupMessage("This is shinyproj version ", ver)
+}

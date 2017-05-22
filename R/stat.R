@@ -31,23 +31,23 @@ boot_stats <- function(vs, nvs, alpha = 0.1) {
     boot = calc_stats(mu, lppd, vs$d_test, vs$family, bw),
     val = calc_stats(mu, lppd, vs$d_test, vs$family, eq_w)
   ))
-  
+
   lapply(sub, function(x) {
     # bootstrapped quantiles of the difference
     d <- mapply(function(bs, bf) quantile(bs-bf, c(a, 1-a), names = F),
                 calc_stats(x$mu, x$lppd, vs$d_test, vs$family, bw), stat_f$boot)
     # exact value of the difference
     val <- calc_stats(x$mu, x$lppd, vs$d_test, vs$family_kl, eq_w) - stat_f$val
-    
+
     tibble(stat = names(val), val = unlist(val), lq = d[1, ],  uq = d[2, ])
-  }) %>% bind_rows(.id = 'size') %>% mutate_(size = "as.integer(size)")
+  }) %>% bind_rows(.id = "size") %>% mutate_(size = "as.integer(size)")
 }
 
 #' @importFrom tibble as_tibble
 #' @importFrom magrittr "%>%"
 calc_stats <- function (mu, lppd, d_test, family, sample_weights) {
   arr <- list(mlpd = lppd, mse = (d_test$y - mu)^2)
-  if (family$family == 'binomial' && all(d_test$weights %in% c(0, 1))) {
+  if (family$family == "binomial" && all(d_test$weights %in% c(0, 1))) {
     arr$pctcorr <- round(mu) == d_test$y
   }
   avg_ <- function(x) c(sample_weights %*% x)

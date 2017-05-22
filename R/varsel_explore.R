@@ -4,18 +4,18 @@
 #'
 #' @param fit_cv An object returned by \link[=cv_varsel]{cv_varsel}.
 #' @param nv Maximum number of variables in the submodel. Defaults to
-#' \code{min(12, length(fit_cv$varsel$chosen))}.
+#' \code{min(12, length(fit_cv$varsel$vind))}.
 #'
 
 #' @import projpred
 #' @importFrom magrittr "%>%"
 #' @importFrom shiny runApp
 #' @export
-varsel_explore <- function(fit_cv, nv = min(12, length(fit_cv$varsel$chosen))) {
+varsel_explore <- function(fit_cv, nv = min(12, length(fit_cv$varsel$vind))) {
 
   # check that cv_varsel has been run and perform the projection
   if(!validate_varsel(fit_cv))
-    stop('Input does not contain cross-validated variable selection information.')
+    stop("Input does not contain cross-validated variable selection information.")
 
   server_data <- extract_data(fit_cv, nv)
 
