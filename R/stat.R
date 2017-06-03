@@ -1,4 +1,4 @@
-# - functions for evaluating mse/mlpd/pctcorr/etc.
+# - Functions for evaluating mse/mlpd/pctcorr/etc.
 
 eval_stat <- function(active_proj, sel_proj, x, d_test, stat) {
   pa <- proj_linpred(active_proj, x, d_test$y, integrated = T)
@@ -8,16 +8,11 @@ eval_stat <- function(active_proj, sel_proj, x, d_test, stat) {
     calc_stats(ps$pred, ps$lpd, d_test, sel_proj$family, bw)[[stat]]
 }
 
-#' @importFrom stats rgamma
 boot_weights <- function(n, n_boot = 1000) {
   bw <- matrix(rgamma(n*n_boot, 1), ncol = n)
   bw <- bw/rowSums(bw)
 }
 
-#' @importFrom stats quantile
-#' @importFrom tibble tibble
-#' @importFrom magrittr "%>%"
-#' @importFrom dplyr bind_rows mutate_
 boot_stats <- function(vs, nvs, alpha = 0.1) {
   a <- alpha / 2
   n <- length(vs$summaries$full$mu)
@@ -40,11 +35,9 @@ boot_stats <- function(vs, nvs, alpha = 0.1) {
     val <- calc_stats(x$mu, x$lppd, vs$d_test, vs$family_kl, eq_w) - stat_f$val
 
     tibble(stat = names(val), val = unlist(val), lq = d[1, ],  uq = d[2, ])
-  }) %>% bind_rows(.id = "size") %>% mutate_(size = "as.integer(size)")
+  }) %>% bind_rows(.id = "size") %>% within(size <- as.integer(size))
 }
 
-#' @importFrom tibble as_tibble
-#' @importFrom magrittr "%>%"
 calc_stats <- function (mu, lppd, d_test, family, sample_weights) {
   arr <- list(mlpd = lppd, mse = (d_test$y - mu)^2)
   if (family$family == "binomial" && all(d_test$weights %in% c(0, 1))) {

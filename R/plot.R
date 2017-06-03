@@ -1,6 +1,4 @@
-# - functions related to plotting
-#' @import ggplot2
-#' @importFrom bayesplot theme_default
+# - Functions related to plotting
 
 theme_proj <- function() {
   theme(axis.text = element_text(size = 18),
@@ -9,13 +7,13 @@ theme_proj <- function() {
         plot.title = element_text(size = 18, face = 'bold', hjust = 0.6))
 }
 
-diff_plot <- function(stat_arr, nv, stat, sel_size, stat_diff) {
+perf_plot <- function(stat_arr, nv, stat, sel_size, stat_diff) {
   df <- stat_arr[stat_arr$stat == stat, ]
   df_diff <- df[df$size == sel_size, c('size', 'val')]
   if (!is.null(stat_diff)) df_diff$val <- df_diff$val + stat_diff
 
   (ggplot(df, aes_(x = ~size, y = ~val)) +
-      geom_errorbar(aes_(ymin = ~lq, ymax = ~uq), width = 0.2, alpha = 0.5) +
+      geom_pointrange(aes_(ymin = ~lq, ymax = ~uq)) +
       geom_line() +
       geom_point(aes_(size = (~size == ~sel_size),
                       color = (~size == ~sel_size + ~stat_diff))) +
@@ -78,8 +76,6 @@ gen_dummy_bg <- function(pct, inds) {
     ggplotGrob()
 }
 
-#' @importFrom grid unit.pmax
-#' @importFrom gtable gtable gtable_add_grob
 comb_left <- function(diff, heat, pct, inds) {
   dummy <- gen_dummy_bg(pct, inds)
   heat_sel <- comb_heat(heat, dummy)
@@ -116,14 +112,43 @@ gtable_stack <- function(g1, g2) {
   g1
 }
 
-dend_plot <- function(cl) {
-  ggplot(cl$df, aes_(x = ~x1, xend = ~x2, y = ~y1, yend = ~y2)) +
+included <- function(x, y) any(y %in% x)
+
+cl_2d_plot <- function(cl, sel) {
+  grps <- sapply(cl$inds, included, sel) %>% which()
+  sel_grp <- match(x = cl$hulls$grp, table = grps, nomatch = 0) > 0
+  sel_pt <- cl$pts$ind %in% sel + 0
+
+  ggplot(cl$hulls, aes_(x = ~x, y = ~y)) +
+    geom_polygon(aes_(color = ~grp), fill = NA) +
+    geom_polygon(aes_(fill = ~grp, alpha = ~(sim * sel_grp))) +
+    geom_point(aes_(size = ~sel_pt), cl$pts) +
+    geom_label_repel(aes_(label = ~lab), cl$pts,
+                     point.padding = unit(1, "lines")) +
+    scale_alpha_continuous(range = range(cl$hulls$sim * sel_grp)) +
+    scale_size_continuous(range = c(1, 2)) +
+    guides(color = "none", fill = "none", size = "none", alpha = "none") +
+    labs(title = "Correlation between the predictions", x = "", y = "") +
+    theme_default() +
+    theme_proj() +
+    theme(axis.ticks = element_line(color = "white"),
+          axis.text = element_text(color = "white"), legend.position = "bottom")
+}
+
+cl_dend_plot <- function(cl, sel) {
+  lab_bold <- ifelse(cl$labs %in% sel, "bold", "plain")
+  sel_ln <- sapply(cl$lines$inds, included, sel) + 0
+  ggplot(cl$lines, aes_(x = ~x1, xend = ~x2, y = ~y1, yend = ~y2,
+                        size = ~sel_ln)) +
     geom_segment() +
-    scale_x_continuous(breaks = 1:length(cl$labs), labels = cl$labs) +
-    scale_y_continuous(labels = function(x) 1-x) +
+    scale_x_continuous(breaks = 1:length(cl$labs), labels = names(cl$labs)) +
+    scale_y_continuous(labels = function(x) 1 - x) +
+    scale_size_continuous(range = c(0.5, 1)) +
+    guides(size = "none") +
     labs(x = "", y = "correlation") +
     theme_default() +
-    theme_proj()
+    theme_proj() +
+    theme(axis.text.x=element_text(angle = -45, hjust = 0, face = lab_bold))
 }
 
 pairs_plot <- function(pairs) {
@@ -156,7 +181,6 @@ ppd_plot <- function(ppd, y) {
           legend.position = c(0.9, 0.9))
 }
 
-#' @importFrom scales pretty_breaks
 hist_plot <- function(hist) {
   ggplot(hist, aes_(x = ~value)) +
     geom_histogram(color = "black", fill = "#B1BED9", bins = 15) +
@@ -169,8 +193,7 @@ hist_plot <- function(hist) {
           axis.ticks.y = element_line(color = "white"))
 }
 
-#' @importFrom tibble tibble
-stat_plot <- function(sel_diff, stat, ns) {
+diff_plot <- function(sel_diff, stat, ns) {
   ggplot(tibble(y = sel_diff), aes_(y = ~y, x = "")) +
     stat_ydensity(geom = "violin",
                   draw_quantiles = 0.5, fill = "#B1BED9") +
@@ -179,4 +202,9 @@ stat_plot <- function(sel_diff, stat, ns) {
     theme_default() +
     theme_proj() +
     theme(axis.ticks.x = element_line(color = "white"))
+}
+
+get_col_brks <- function() {
+  list(breaks = seq(5e-3, 1-5e-3, length.out = 7),
+       pal = brewer.pal(11, "RdBu")[3:10])
 }

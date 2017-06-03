@@ -1,11 +1,15 @@
-#' @importFrom shiny fluidPage fluidRow column uiOutput plotOutput em h3 h4 h5
-#' radioButtons
-#' @importFrom DT dataTableOutput
+# - Get the UI
 
 get_ui <- function() {
   width_sub <- "450px"
   height_sub <- "350px"
   fluidPage(
+    tags$style(HTML("
+      table.dataTable tr.selected td, table.dataTable td.selected {
+        border: 1px solid black;
+        background-color: #### !important;
+      }")
+    ),
     fluidRow(
       column(5, h3("model size selection", align = "center"),
              uiOutput("stat")),
@@ -15,7 +19,7 @@ get_ui <- function() {
     column(
       width = 5, align = "center",
       fluidRow(
-        plotOutput("diff_heat", width = "650px", height = "800px",
+        plotOutput("global", width = "650px", height = "800px",
                    click = "size_click"),
         em("Select a suggested model by clicking a column corresponding to",
            "the desired model size.", style = "color:grey")
@@ -25,17 +29,20 @@ get_ui <- function() {
       column(
         width = 6, align = "center", style = "border-left: dotted #d3d3d3;",
         fluidRow(
-          h4("correlated variables", align = "center"),
-          plotOutput("dendro", width = width_sub, height = height_sub),
-          plotOutput("scatter", width = width_sub, height = height_sub))),
+          # h4("", align = "center"),
+          plotOutput("diff", width = width_sub, height = height_sub),
+          plotOutput("clust", width = width_sub, height = height_sub),
+          radioButtons("clust_type", "Plot type", selected = "dend", inline = T,
+                       choices = c("Dendogram" = "dend",
+                                   "2D clustering" = "2d")))),
       column(
         width = 6, align = "center", style = "border-left: dotted #d3d3d3;",
         fluidRow(
-          h4("submodel diagnostics", align = "center"),
-          plotOutput("statplot", width = width_sub, height = height_sub),
-          plotOutput("diag", width = width_sub, height = height_sub),
-          radioButtons("plot_type", "Plot type", selected = "hist", inline = T,
-                       choices = c("Variable histograms" = "hist",
+          # h4("", align = "center"),
+          plotOutput("hist", width = width_sub, height = height_sub),
+          plotOutput("pairs_ppd", width = width_sub, height = height_sub),
+          radioButtons("pairs_ppd_type", "Plot type", selected = "pairs", inline = T,
+                       choices = c("Pairs plot" = "pairs",
                                    "Predictive density" = "ppd"))))
     )
   )

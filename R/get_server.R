@@ -1,18 +1,12 @@
-#' @importFrom shiny reactive observeEvent renderText debounce renderUI
-#' renderPlot selectInput
-#' @importFrom DT dataTableAjax reloadData selectCells renderDataTable
-#' dataTableProxy
-#' @importFrom tidyr gather
-#' @importFrom graphics plot
-#' @importFrom stats setNames
-#' @importFrom magrittr "%>%"
-#' @importFrom tibble as_tibble
+# - Get the server function
 
 get_server <- function(data) {
   function(input, output, session) {
 
     stat <- reactive(input$stat)
-    plot_type <- reactive(input$plot_type)
+    clust_type <- reactive(input$clust_type)
+    pairs_ppd_type <- reactive(input$pairs_ppd_type)
+
     observeEvent(input$size_click, {
       sizeval <- ceiling((input$size_click$x - 0.13)/0.9*data$nv)
       if(is.null(sizeval) || sizeval < 1 || sizeval > data$nv) return(NULL)
@@ -23,81 +17,77 @@ get_server <- function(data) {
     })
 
     sel_quick <- reactive(
-      if (!is.null(input$vars_cells_selected)) {
+      if (length(input$vars_cells_selected) > 0) {
         data$ch[input$vars_cells_selected[, 2] + 1]
       }
     )
     sel <- sel_quick %>% debounce(1000)
-    not_sel <- reactive(data$ch[!(data$ch %in% sel())])
 
-    # dendro + scatter selection
-    sel_corr <- reactive(
-      if (!is.null(sel())) sel_corrs(data$dist, data$ch, sel(), not_sel(), 4)
-    )
-    sel_clust <- reactive(
-      if (!is.null(sel_corr())) clust_fun(data$dist, sel_corr())
-    )
+    # pairs for correlation-scatterplots
     sel_pairs <- reactive(
-      if (!is.null(sel_corr())) pairs_fun(data$x, sel_corr())
+      if (!is.null(sel()) && length(sel) > 1) pairs_fun(data$x, sel())
     )
 
     # projection
-    sug_proj <- reactive(
-      if (!is.null(sel())) data$proj[[length(sel())]]
-    )
+    sug_proj <- reactive(if (!is.null(sel())) data$proj[[length(sel())]])
     sel_proj <- reactive(
-      if (!is.null(sel())) project(data$fit, vind = sel())
+     if (!is.null(sel())) project(data$fit, vind = sel(), ns = 100)
     )
     sel_ppd <- reactive(
-      if (!is.null(sel_proj()) && (plot_type() == "ppd"))
-        proj_predict(sel_proj(), data$x) %>% t() %>% as_tibble() %>% gather()
+      if (!is.null(sel_proj()))
+        proj_predict(sel_proj(), data$x, draws = 100) %>%
+          t() %>% as_tibble() %>% gather()
     )
     sel_hist <- reactive(
-      if (!is.null(sel_proj()) && (plot_type() == "hist")) {
-        with(sel_proj(), setNames(object = as_tibble(t(beta)),
-                                  nm = names(vind)) %>% gather())
-      })
-    sel_diff <- reactive({
+      if (!is.null(sel_proj()))
+        with(sel_proj(), setNames(as_tibble(t(beta)), names(vind)) %>% gather)
+    )
+    sel_diff <- reactive(
       if (!is.null(sel()) && any(!(sel() %in% data$ch[seq_along(sel())])))
-        eval_stat(sel_proj(), sug_proj(), data$x, data$d_test, stat())
-    })
+        eval_stat(sel_proj(), sug_proj(), data$x, data$fit$varsel$d_test, stat())
+    )
     stat_diff <- reactive(if (is.null(sel_diff())) 0 else mean(sel_diff()))
 
-    # LHS plot(s)
+    # "Global" plot
     output$stat <- renderUI(
-      selectInput("stat", label = "Summary statistic", width = "25%",
-                  choices = data$stat_vals, selected = data$stat_def)
+      selectInput("stat", "Summary statistic", unique(data$stat_arr$stat),
+                  switch(data$fit$family$family, 'gaussian' = 'mse',
+                         'binomial' = 'pctcorr', 'mlpd'), width = "25%")
     )
-    diff_full <- reactive({
-      diff_plot(data$stat_arr, data$nv, stat(), length(sel()), stat_diff())
+    perf <- reactive({
+      perf_plot(data$stat_arr, data$nv, stat(), length(sel()), stat_diff())
     })
     heat <- reactive(
       gen_heat_bg(data$pct, length(sel()), names(sel()))
     )
-    output$diff_heat <- renderPlot({
-      comb_left(diff_full(), heat(), data$pct, sel()) %>% plot()
+    output$global <- renderPlot({
+      comb_left(perf(), heat(), data$pct, sel()) %>% plot()
     })
     output$vars <- renderDataTable(
-      gen_vars_table(data$pctch, data$sug)
+      gen_vars_table(data$pctch, data$fit$varsel$ssize)
     )
     proxy_vars <- dataTableProxy(session$ns("vars"))
 
-    # RHS plots
-    output$dendro <- renderPlot(
-      if (!is.null(sel_clust())) dend_plot(sel_clust())
+    # LHS plots
+    output$diff <- renderPlot(
+      if (!is.null(sel_diff())) diff_plot(sel_diff(), stat(), length(sel()))
     )
-    output$scatter <- renderPlot(
-      if (!is.null(sel_pairs())) pairs_plot(sel_pairs())
-    )
-    output$statplot <- renderPlot(
-      if (!is.null(sel_diff())) stat_plot(sel_diff(), stat(), length(sel()))
+    output$clust <- renderPlot(
+      if (!is.null(sel()))
+        if (clust_type() == "dend") {
+          cl_dend_plot(data$cl_d, sel())
+        } else if (clust_type() == "2d") {
+          cl_2d_plot(data$cl_2d, sel())
+        }
     )
 
-    output$diag <- renderPlot(
-      if(!is.null(sel_ppd())) {
-        ppd_plot(sel_ppd(), data$d_test$y)
-      } else if(!is.null(sel_hist())) {
-        hist_plot(sel_hist())
+    # RHS plots
+    output$hist <- renderPlot(if (!is.null(sel_hist())) hist_plot(sel_hist()))
+    output$pairs_ppd <- renderPlot(
+      if (!is.null(sel_pairs()) && (pairs_ppd_type() == "pairs")) {
+        pairs_plot(sel_pairs())
+      } else if (!is.null(sel_ppd()) && (pairs_ppd_type() == "ppd")) {
+        ppd_plot(sel_ppd(), data$fit$varsel$d_test$y)
       }
     )
   }

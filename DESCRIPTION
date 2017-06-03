@@ -1,6 +1,6 @@
 Package: shinyproj
 Title: Interactive model selection using projpred
-Version: 0.1.1
+Version: 0.1.2
 Author:
     Markus Paasiniemi [aut]
 Maintainer:
@@ -10,24 +10,27 @@ Description:
 Depends:
     R (>= 3.1.2)
 Imports:
-    shiny (>= 1.0.1),
-    projpred (>= 0.5.1),
-    ggplot2 (>= 2.2.1),
-    scales,
-    gtable,
-    rstanarm,
-    tidyr,
-    dplyr,
-    magrittr,
-    tibble,
-    DT (>= 0.2),
-    RColorBrewer,
     bayesplot,
+    circlr (>= 0.1.1),
+    dplyr (>= 0.6.0),
+    DT (>= 0.2),
+    ggplot2 (>= 2.2.1),
+    ggrepel,
+    gtable,
     htmltools (>= 0.3.5),
+    magrittr,
+    projpred (>= 0.5.1),
+    RColorBrewer,
+    rstanarm,
+    scales,
+    shiny (>= 1.0.1),
     stats,
+    tibble,
+    tidyr,
     utils
 Remotes:
     github::stan-dev/projpred
+    github::paasim/circlr
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

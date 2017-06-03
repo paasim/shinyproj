@@ -6,10 +6,6 @@
 #' @param nv Maximum number of variables in the submodel. Defaults to
 #' \code{min(12, length(fit_cv$varsel$vind))}.
 #'
-
-#' @import projpred
-#' @importFrom magrittr "%>%"
-#' @importFrom shiny runApp
 #' @export
 varsel_explore <- function(fit_cv, nv = min(12, length(fit_cv$varsel$vind))) {
 
