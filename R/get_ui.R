@@ -35,7 +35,7 @@ get_ui <- function() {
         column(
           width = 6,
           box(plotOutput("clust_2d"), collapsible = T, width = 12,
-              title = "Scatterplot of the sigle variable model predictions"),
+              title = "Scatterplot of the single variable model predictions"),
           box(plotOutput("pairs"), collapsible = T, width = 12,
               title = "Pairs plot of the selected variables"),
           box(plotOutput("ppd"), collapsible = T, collapsed = T, width = 12,

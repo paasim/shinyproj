@@ -2,7 +2,7 @@
 % Please edit documentation in R/varsel_explore.R
 \name{varsel_explore}
 \alias{varsel_explore}
-\title{Interactive variable selection using glmproj}
+\title{Interactive variable selection using projpred}
 \usage{
 varsel_explore(fit_cv, nv = min(12, length(fit_cv$varsel$vind)))
 }
@@ -13,5 +13,5 @@ varsel_explore(fit_cv, nv = min(12, length(fit_cv$varsel$vind)))
 \code{min(12, length(fit_cv$varsel$vind))}.}
 }
 \description{
-Visualise the results of the variable selection using shiny.
+Visualize the results of the variable selection using shiny.
 }

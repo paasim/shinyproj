@@ -1,6 +1,6 @@
-#' Interactive variable selection using glmproj
+#' Interactive variable selection using projpred
 #'
-#' Visualise the results of the variable selection using shiny.
+#' Visualize the results of the variable selection using shiny.
 #'
 #' @param fit_cv An object returned by \link[=cv_varsel]{cv_varsel}.
 #' @param nv Maximum number of variables in the submodel. Defaults to
