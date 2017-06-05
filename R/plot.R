@@ -4,33 +4,34 @@ theme_proj <- function() {
   theme(axis.text = element_text(size = 18),
         axis.title = element_text(size = 18),
         strip.text = element_text(size = 18),
-        plot.title = element_text(size = 18, face = 'bold', hjust = 0.6))
+        plot.title = element_text(size = 18, face = "bold", hjust = 0.6))
 }
 
 perf_plot <- function(stat_arr, nv, stat, sel_size, stat_diff) {
   df <- stat_arr[stat_arr$stat == stat, ]
-  df_diff <- df[df$size == sel_size, c('size', 'val')]
+  df_diff <- df[df$size == sel_size, c("size", "val")]
+  if (nrow(df_diff) == 0) df_diff <- tibble(size = 0, val = 0)
   if (!is.null(stat_diff)) df_diff$val <- df_diff$val + stat_diff
 
   (ggplot(df, aes_(x = ~size, y = ~val)) +
-      geom_pointrange(aes_(ymin = ~lq, ymax = ~uq)) +
+      geom_hline(aes_(yintercept = 0), color = "darkred", linetype = 2) +
       geom_line() +
-      geom_point(aes_(size = (~size == ~sel_size),
-                      color = (~size == ~sel_size + ~stat_diff))) +
-      geom_point(data = df_diff, size = 3, color = '#B1BED9') +
+      geom_pointrange(aes_(ymin = ~lq, ymax = ~uq, fill = '1')) +
+      geom_point(aes_(fill = '2'), df_diff,
+                 color = "#000000", size = 3, shape = 21) +
       coord_cartesian(xlim = c(1-0.4, nv+0.4), expand = F) +
-      geom_hline(aes_(yintercept = 0), color = 'darkred', linetype = 2) +
       scale_x_continuous(breaks = 1:nv) +
-      scale_color_manual(values = c('black', '#B1BED9')) +
-      scale_size_manual(values = c(2.5, 3)) +
-      labs(y = paste('Difference in', stat, 'to the full model'),
-           x = '', title = 'Performance difference to the full model') +
+      scale_fill_manual(values = c("#000000", "#B1BED9"),
+                         labels = c('Suggested', 'Selected'),
+                         name = '') +
+      labs(y = paste("Difference in", stat, "to the full model"),
+           x = "", title = "Performance difference to the full model") +
       theme_default() +
       theme_proj() +
       theme(strip.text = element_blank(),
             axis.text.x = element_blank(),
-            legend.position = 'none',
-            plot.background = element_rect(fill = 'white', color = 'white'))) %>%
+            plot.background = element_rect(fill = "white", color = "white"),
+            legend.position = c(0.9, 0.9))) %>%
     ggplotGrob()
 }
 
@@ -54,6 +55,7 @@ gen_heat_bg <- function(pct, col, rows) {
       scale_fill_manual(breaks = brks, values = col_brks$pal[brks]) +
       theme_proj() +
       theme(legend.position = "none",
+            axis.text.y = element_text(angle = 45),
             axis.ticks.x = element_blank(),
             axis.text.x = element_blank(),
             panel.background=element_blank())) %>%
@@ -128,7 +130,8 @@ cl_2d_plot <- function(cl, sel) {
     scale_alpha_continuous(range = range(cl$hulls$sim * sel_grp)) +
     scale_size_continuous(range = c(1, 2)) +
     guides(color = "none", fill = "none", size = "none", alpha = "none") +
-    labs(title = "Correlation between the predictions", x = "", y = "") +
+    labs(title = "Correlation between the single variable predictions",
+         x = "", y = "") +
     theme_default() +
     theme_proj() +
     theme(axis.ticks = element_line(color = "white"),
@@ -145,10 +148,11 @@ cl_dend_plot <- function(cl, sel) {
     scale_y_continuous(labels = function(x) 1 - x) +
     scale_size_continuous(range = c(0.5, 1)) +
     guides(size = "none") +
-    labs(x = "", y = "correlation") +
+    labs(title = "Correlation between the single variable predictions",
+         x = "", y = "correlation") +
     theme_default() +
     theme_proj() +
-    theme(axis.text.x=element_text(angle = -45, hjust = 0, face = lab_bold))
+    theme(axis.text.x = element_text(angle = -45, hjust = 0, face = lab_bold))
 }
 
 pairs_plot <- function(pairs) {
@@ -156,7 +160,7 @@ pairs_plot <- function(pairs) {
     geom_point() +
     geom_smooth(color = "darkred", method = "lm", formula = y ~ x, se = F) +
     facet_grid(n2 ~ n1) +
-    labs(x = "", y = "") +
+    labs(title = "Correlation between the selected variables", x = "", y = "") +
     theme_default() +
     theme_proj() +
     theme(axis.text = element_text(color = "white"))

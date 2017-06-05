@@ -12,14 +12,15 @@ extract_data <- function(fit, nv) {
   cl_2d <- hc_to_clusters(hc, cmd, fit$varsel$vind, fit$varsel$ssize)
   cl_dend <- hc2arr(hc, fit$varsel$vind)
 
-  stat_arr <- boot_stats(fit$varsel, 1:nv)
+  a <- 0.1
+  stat_arr <- boot_stats(fit$varsel, 1:nv, a)
   proj <- project(fit, nv = seq_along(ch), ns = 100)
 
   pctch <- round(fit$varsel$pctch, 2) %>% as_tibble()
   pct <- get_pct_arr(pctch, nv)
 
   list(fit = fit, nv = nv, x = x, ch = ch, cl_2d = cl_2d, cl_dend = cl_dend,
-       stat_arr = stat_arr, proj = proj, pctch = pctch, pct = pct)
+       stat_arr = stat_arr, a = a, proj = proj, pctch = pctch, pct = pct)
 }
 
 get_pct_arr <- function(pctch, nv) {

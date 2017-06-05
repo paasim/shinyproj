@@ -6,10 +6,16 @@ get_server <- function(data) {
     stat <- reactive(input$stat)
     clust_type <- reactive(input$clust_type)
     pairs_ppd_type <- reactive(input$pairs_ppd_type)
+    output$stat <- renderUI(
+      selectInput("stat", "Summary statistic", unique(data$stat_arr$stat),
+                  switch(data$fit$family$family, 'gaussian' = 'mse',
+                         'binomial' = 'pctcorr', 'mlpd'), width = "25%")
+    )
+
 
     observeEvent(input$size_click, {
       sizeval <- ceiling((input$size_click$x - 0.13)/0.9*data$nv)
-      if(is.null(sizeval) || sizeval < 1 || sizeval > data$nv) return(NULL)
+      if (is.null(sizeval) || sizeval < 1 || sizeval > data$nv) return(NULL)
       dataTableAjax(session, data$pctch[sizeval, -1],
                     rownames = F, outputId = 'vars')
       reloadData(proxy_vars, resetPaging = T, clearSelection = 'none')
@@ -25,7 +31,7 @@ get_server <- function(data) {
 
     # pairs for correlation-scatterplots
     sel_pairs <- reactive(
-      if (!is.null(sel()) && length(sel) > 1) pairs_fun(data$x, sel())
+      if (!is.null(sel()) && length(sel()) > 1) pairs_fun(data$x, sel())
     )
 
     # projection
@@ -49,20 +55,17 @@ get_server <- function(data) {
     stat_diff <- reactive(if (is.null(sel_diff())) 0 else mean(sel_diff()))
 
     # "Global" plot
-    output$stat <- renderUI(
-      selectInput("stat", "Summary statistic", unique(data$stat_arr$stat),
-                  switch(data$fit$family$family, 'gaussian' = 'mse',
-                         'binomial' = 'pctcorr', 'mlpd'), width = "25%")
+    perf <- reactive(
+      if (!is.null(stat()))
+        perf_plot(data$stat_arr, data$nv, stat(), length(sel()), stat_diff())
     )
-    perf <- reactive({
-      perf_plot(data$stat_arr, data$nv, stat(), length(sel()), stat_diff())
-    })
-    heat <- reactive(
-      gen_heat_bg(data$pct, length(sel()), names(sel()))
+    heat <- reactive(gen_heat_bg(data$pct, length(sel()), names(sel())))
+    output$global <- renderPlot(
+      if (!is.null(stat()))
+        comb_left(perf(), heat(), data$pct, sel()) %>% plot()
     )
-    output$global <- renderPlot({
-      comb_left(perf(), heat(), data$pct, sel()) %>% plot()
-    })
+
+    # Select variables
     output$vars <- renderDataTable(
       gen_vars_table(data$pctch, data$fit$varsel$ssize)
     )

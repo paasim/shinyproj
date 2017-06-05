@@ -7,7 +7,19 @@ get_ui <- function() {
     tags$style(HTML("
       table.dataTable tr.selected td, table.dataTable td.selected {
         border: 1px solid black;
-        background-color: #### !important;
+        font-weight: bold;
+      }
+      table thead th {
+        padding: 50px 0px 0px 0px !important;
+        transform: rotate(315deg) translate(22px, -8px);
+        table-layout: fixed !important;
+        width: 35px !important;
+        border-bottom: 0px !important;
+        transform-origin: bottom right;
+      }
+      table {
+        width: 0px !important;
+        table-layout: fixed !important;
       }")
     ),
     fluidRow(
