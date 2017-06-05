@@ -120,13 +120,14 @@ cl_2d_plot <- function(cl, sel) {
   grps <- sapply(cl$inds, included, sel) %>% which()
   sel_grp <- match(x = cl$hulls$grp, table = grps, nomatch = 0) > 0
   sel_pt <- cl$pts$ind %in% sel + 0
+  sel_ff <- ifelse(sel_pt, "bold", "plain")
 
   ggplot(cl$hulls, aes_(x = ~x, y = ~y)) +
     geom_polygon(aes_(color = ~grp), fill = NA) +
     geom_polygon(aes_(fill = ~grp, alpha = ~(sim * sel_grp))) +
     geom_point(aes_(size = ~sel_pt), cl$pts) +
-    geom_label_repel(aes_(label = ~lab), cl$pts,
-                     point.padding = unit(1, "lines")) +
+    geom_label_repel(aes_(label = ~lab, fontface = ~sel_ff), cl$pts,
+                     point.padding = unit(0.5, "lines"), size = 3.5) +
     scale_alpha_continuous(range = range(cl$hulls$sim * sel_grp)) +
     scale_size_continuous(range = c(1, 2)) +
     guides(color = "none", fill = "none", size = "none", alpha = "none") +

@@ -11,11 +11,12 @@ get_ui <- function() {
       }
       table thead th {
         padding: 50px 0px 0px 0px !important;
-        transform: rotate(315deg) translate(22px, -8px);
+        transform: rotate(315deg) translate(-10px, -8px);
+        -webkit-transform: rotate(315deg) translate(-10px, -8px);
+        -ms-transform: rotate(315deg) translate(-10px, -8px);
         table-layout: fixed !important;
         width: 35px !important;
         border-bottom: 0px !important;
-        transform-origin: bottom right;
       }
       table {
         width: 0px !important;
