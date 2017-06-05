@@ -4,14 +4,14 @@ get_server <- function(data) {
   function(input, output, session) {
 
     stat <- reactive(input$stat)
-    clust_type <- reactive(input$clust_type)
-    pairs_ppd_type <- reactive(input$pairs_ppd_type)
     output$stat <- renderUI(
       selectInput("stat", "Summary statistic", unique(data$stat_arr$stat),
-                  switch(data$fit$family$family, 'gaussian' = 'mse',
-                         'binomial' = 'pctcorr', 'mlpd'), width = "25%")
-    )
+                  switch(data$fit$family$family,
+                         'gaussian' = 'mse', 'binomial' = 'pctcorr', 'mlpd')))
 
+    observeEvent(input$toggleSidebar, {
+      toggleClass(selector = "body", class = "sidebar-collapse")
+    })
 
     observeEvent(input$size_click, {
       sizeval <- ceiling((input$size_click$x - 0.13)/0.9*data$nv)
@@ -20,12 +20,12 @@ get_server <- function(data) {
                     rownames = F, outputId = 'vars')
       reloadData(proxy_vars, resetPaging = T, clearSelection = 'none')
       selectCells(proxy_vars, matrix(c(rep(1,sizeval), 1:sizeval-1), ncol = 2))
+      addClass(selector = "body", class = "sidebar-collapse")
     })
 
     sel_quick <- reactive(
-      if (length(input$vars_cells_selected) > 0) {
+      if (length(input$vars_cells_selected) > 0)
         data$ch[input$vars_cells_selected[, 2] + 1]
-      }
     )
     sel <- sel_quick %>% debounce(1000)
 
@@ -35,7 +35,9 @@ get_server <- function(data) {
     )
 
     # projection
-    sug_proj <- reactive(if (!is.null(sel())) data$proj[[length(sel())]])
+    sug_proj <- reactive(
+      if (!is.null(sel())) data$proj[[length(sel())]]
+    )
     sel_proj <- reactive(
      if (!is.null(sel())) project(data$fit, vind = sel(), ns = 100)
     )
@@ -54,6 +56,12 @@ get_server <- function(data) {
     )
     stat_diff <- reactive(if (is.null(sel_diff())) 0 else mean(sel_diff()))
 
+    # Select variables
+    output$vars <- renderDataTable(
+      gen_vars_table(data$pctch, data$fit$varsel$ssize)
+    )
+    proxy_vars <- dataTableProxy(session$ns("vars"))
+
     # "Global" plot
     perf <- reactive(
       if (!is.null(stat()))
@@ -65,33 +73,30 @@ get_server <- function(data) {
         comb_left(perf(), heat(), data$pct, sel()) %>% plot()
     )
 
-    # Select variables
-    output$vars <- renderDataTable(
-      gen_vars_table(data$pctch, data$fit$varsel$ssize)
-    )
-    proxy_vars <- dataTableProxy(session$ns("vars"))
-
-    # LHS plots
+    # Smaller plots
     output$diff <- renderPlot(
-      if (!is.null(sel_diff())) diff_plot(sel_diff(), stat(), length(sel()))
-    )
-    output$clust <- renderPlot(
-      if (!is.null(sel()))
-        if (clust_type() == "dend") {
-          cl_dend_plot(data$cl_d, sel())
-        } else if (clust_type() == "2d") {
-          cl_2d_plot(data$cl_2d, sel())
-        }
-    )
-
-    # RHS plots
-    output$hist <- renderPlot(if (!is.null(sel_hist())) hist_plot(sel_hist()))
-    output$pairs_ppd <- renderPlot(
-      if (!is.null(sel_pairs()) && (pairs_ppd_type() == "pairs")) {
-        pairs_plot(sel_pairs())
-      } else if (!is.null(sel_ppd()) && (pairs_ppd_type() == "ppd")) {
-        ppd_plot(sel_ppd(), data$fit$varsel$d_test$y)
+      if (!is.null(sel_diff())) {
+        diff_plot(sel_diff(), stat(), length(sel()))
+      } else {
+        ggplot() + geom_blank()
       }
     )
+    output$clust_2d <- renderPlot(
+     if (!is.null(sel())) cl_2d_plot(data$cl_2d, sel())
+    )
+    output$clust_dend <- renderPlot(
+     if (!is.null(sel())) cl_dend_plot(data$cl_d, sel())
+    )
+    output$hist <- renderPlot(
+      if (!is.null(sel_hist())) hist_plot(sel_hist())
+    )
+    output$pairs <- renderPlot(
+     if (!is.null(sel_pairs())) pairs_plot(sel_pairs())
+    )
+    output$ppd <- renderPlot(
+      if (!is.null(sel_ppd())) ppd_plot(sel_ppd(), data$fit$varsel$d_test$y)
+    )
+
+    session$onSessionEnded(stopApp)
   }
 }

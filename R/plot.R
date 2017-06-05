@@ -1,10 +1,94 @@
 # - Functions related to plotting
 
-theme_proj <- function() {
-  theme(axis.text = element_text(size = 18),
-        axis.title = element_text(size = 18),
-        strip.text = element_text(size = 18),
-        plot.title = element_text(size = 18, face = "bold", hjust = 0.6))
+included <- function(x, y) any(y %in% x)
+
+cl_2d_plot <- function(cl, sel) {
+  grps <- sapply(cl$inds, included, sel) %>% which()
+  sel_grp <- match(x = cl$hulls$grp, table = grps, nomatch = 0) > 0
+  sel_pt <- cl$pts$ind %in% sel + 0
+  sel_ff <- ifelse(sel_pt, "bold", "plain")
+
+  ggplot(cl$hulls, aes_(x = ~x, y = ~y)) +
+    geom_polygon(aes_(color = ~grp), fill = NA) +
+    geom_polygon(aes_(fill = ~grp, alpha = ~(sim * sel_grp))) +
+    geom_point(aes_(size = ~sel_pt), cl$pts) +
+    geom_label_repel(aes_(label = ~lab, fontface = ~sel_ff), cl$pts,
+                     point.padding = unit(0.5, "lines"), size = 3.5) +
+    scale_alpha_continuous(range = range(cl$hulls$sim * sel_grp)) +
+    scale_size_continuous(range = c(1, 2)) +
+    guides(color = "none", fill = "none", size = "none", alpha = "none") +
+    labs(x = "", y = "") +
+    theme_default() +
+    theme_proj() +
+    theme(axis.ticks = element_line(color = "white"),
+          axis.text = element_text(color = "white"), legend.position = "bottom")
+}
+
+cl_dend_plot <- function(cl, sel) {
+  lab_bold <- ifelse(cl$labs %in% sel, "bold", "plain")
+  sel_ln <- sapply(cl$lines$inds, included, sel) + 0
+  ggplot(cl$lines, aes_(x = ~x1, xend = ~x2, y = ~y1, yend = ~y2,
+                        size = ~sel_ln)) +
+    geom_segment() +
+    scale_x_continuous(breaks = 1:length(cl$labs), labels = names(cl$labs)) +
+    scale_y_continuous(labels = function(x) 1 - x) +
+    scale_size_continuous(range = c(0.5, 1)) +
+    guides(size = "none") +
+    labs(x = "", y = "correlation") +
+    theme_default() +
+    theme_proj() +
+    theme(axis.text.x = element_text(angle = -45, hjust = 0, face = lab_bold))
+}
+
+pairs_plot <- function(pairs) {
+  ggplot(pairs, aes_(x = ~x1, y = ~x2)) +
+    geom_point() +
+    geom_smooth(color = "darkred", method = "lm", formula = y ~ x, se = F) +
+    facet_grid(n2 ~ n1) +
+    labs(x = "", y = "") +
+    theme_default() +
+    theme_proj() +
+    theme(axis.text = element_text(color = "white"))
+}
+
+ppd_plot <- function(ppd, y) {
+  ggplot(mapping = aes_(x = ~value)) +
+    stat_density(aes_(group = ~key, color = "yrep"),
+                 data = ppd, geom = "line", position = "identity",
+                 size = 0.25, alpha = 0.3) +
+    stat_density(aes_(color = "y"), geom = "line",
+                 position = "identity", size = 0.8,
+                 data = data.frame(value = y)) +
+    scale_color_manual(values = c("black", "#B1BED9")) +
+    coord_cartesian(expand = FALSE) +
+    theme_default() +
+    theme_proj() +
+    theme(axis.text.y = element_text(color = "white"),
+          axis.ticks.y = element_line(color = "white"),
+          axis.title = element_blank(), legend.title = element_blank(),
+          legend.position = c(0.9, 0.9))
+}
+
+hist_plot <- function(hist) {
+  ggplot(hist, aes_(x = ~value)) +
+    geom_histogram(color = "black", fill = "#B1BED9", bins = 15) +
+    facet_wrap(~ key) +
+    labs(y = "") +
+    scale_x_continuous(breaks = pretty_breaks(n = 3)) +
+    theme_bw() +
+    theme_proj() +
+    theme(axis.text.y = element_text(color = "white"),
+          axis.ticks.y = element_line(color = "white"))
+}
+
+diff_plot <- function(sel_diff, stat, ns) {
+  ggplot(tibble(y = sel_diff), aes_(y = ~y, x = "")) +
+    stat_ydensity(geom = "violin",
+                  draw_quantiles = 0.5, fill = "#B1BED9") +
+    labs(x = "", y = paste("Difference in", stat)) +
+    theme_default() +
+    theme_proj() +
+    theme(axis.ticks.x = element_line(color = "white"))
 }
 
 perf_plot <- function(stat_arr, nv, stat, sel_size, stat_diff) {
@@ -114,99 +198,11 @@ gtable_stack <- function(g1, g2) {
   g1
 }
 
-included <- function(x, y) any(y %in% x)
-
-cl_2d_plot <- function(cl, sel) {
-  grps <- sapply(cl$inds, included, sel) %>% which()
-  sel_grp <- match(x = cl$hulls$grp, table = grps, nomatch = 0) > 0
-  sel_pt <- cl$pts$ind %in% sel + 0
-  sel_ff <- ifelse(sel_pt, "bold", "plain")
-
-  ggplot(cl$hulls, aes_(x = ~x, y = ~y)) +
-    geom_polygon(aes_(color = ~grp), fill = NA) +
-    geom_polygon(aes_(fill = ~grp, alpha = ~(sim * sel_grp))) +
-    geom_point(aes_(size = ~sel_pt), cl$pts) +
-    geom_label_repel(aes_(label = ~lab, fontface = ~sel_ff), cl$pts,
-                     point.padding = unit(0.5, "lines"), size = 3.5) +
-    scale_alpha_continuous(range = range(cl$hulls$sim * sel_grp)) +
-    scale_size_continuous(range = c(1, 2)) +
-    guides(color = "none", fill = "none", size = "none", alpha = "none") +
-    labs(title = "Correlation between the single variable predictions",
-         x = "", y = "") +
-    theme_default() +
-    theme_proj() +
-    theme(axis.ticks = element_line(color = "white"),
-          axis.text = element_text(color = "white"), legend.position = "bottom")
-}
-
-cl_dend_plot <- function(cl, sel) {
-  lab_bold <- ifelse(cl$labs %in% sel, "bold", "plain")
-  sel_ln <- sapply(cl$lines$inds, included, sel) + 0
-  ggplot(cl$lines, aes_(x = ~x1, xend = ~x2, y = ~y1, yend = ~y2,
-                        size = ~sel_ln)) +
-    geom_segment() +
-    scale_x_continuous(breaks = 1:length(cl$labs), labels = names(cl$labs)) +
-    scale_y_continuous(labels = function(x) 1 - x) +
-    scale_size_continuous(range = c(0.5, 1)) +
-    guides(size = "none") +
-    labs(title = "Correlation between the single variable predictions",
-         x = "", y = "correlation") +
-    theme_default() +
-    theme_proj() +
-    theme(axis.text.x = element_text(angle = -45, hjust = 0, face = lab_bold))
-}
-
-pairs_plot <- function(pairs) {
-  ggplot(pairs, aes_(x = ~x1, y = ~x2)) +
-    geom_point() +
-    geom_smooth(color = "darkred", method = "lm", formula = y ~ x, se = F) +
-    facet_grid(n2 ~ n1) +
-    labs(title = "Correlation between the selected variables", x = "", y = "") +
-    theme_default() +
-    theme_proj() +
-    theme(axis.text = element_text(color = "white"))
-}
-
-ppd_plot <- function(ppd, y) {
-  ggplot(mapping = aes_(x = ~value)) +
-    stat_density(aes_(group = ~key, color = "yrep"),
-                 data = ppd, geom = "line", position = "identity",
-                 size = 0.25, alpha = 0.3) +
-    stat_density(aes_(color = "y"), geom = "line",
-                 position = "identity", size = 0.8,
-                 data = data.frame(value = y)) +
-    scale_color_manual(values = c("black", "#B1BED9")) +
-    coord_cartesian(expand = FALSE) +
-    labs(title = "Samples from the predictive distribution") +
-    theme_default() +
-    theme_proj() +
-    theme(axis.text.y = element_text(color = "white"),
-          axis.ticks.y = element_line(color = "white"),
-          axis.title = element_blank(), legend.title = element_blank(),
-          legend.position = c(0.9, 0.9))
-}
-
-hist_plot <- function(hist) {
-  ggplot(hist, aes_(x = ~value)) +
-    geom_histogram(color = "black", fill = "#B1BED9", bins = 15) +
-    facet_wrap(~ key) +
-    labs(y = "", title = "Histograms of the selected variables") +
-    scale_x_continuous(breaks = pretty_breaks(n = 3)) +
-    theme_bw() +
-    theme_proj() +
-    theme(axis.text.y = element_text(color = "white"),
-          axis.ticks.y = element_line(color = "white"))
-}
-
-diff_plot <- function(sel_diff, stat, ns) {
-  ggplot(tibble(y = sel_diff), aes_(y = ~y, x = "")) +
-    stat_ydensity(geom = "violin",
-                  draw_quantiles = 0.5, fill = "#B1BED9") +
-    labs(title = paste("Performance difference to the best model of size", ns),
-         x = "", y = paste("Difference in", stat)) +
-    theme_default() +
-    theme_proj() +
-    theme(axis.ticks.x = element_line(color = "white"))
+theme_proj <- function() {
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 18),
+        strip.text = element_text(size = 18),
+        plot.title = element_text(size = 18, face = "bold", hjust = 0.6))
 }
 
 get_col_brks <- function() {

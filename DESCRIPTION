@@ -1,6 +1,6 @@
 Package: shinyproj
 Title: Interactive model selection using projpred
-Version: 0.1.2.2
+Version: 0.1.3.0
 Author:
     Markus Paasiniemi [aut]
 Maintainer:
@@ -24,6 +24,8 @@ Imports:
     rstanarm,
     scales,
     shiny (>= 1.0.1),
+    shinyjs,
+    shinydashboard (>= 0.6.0),
     stats,
     tibble,
     tidyr,

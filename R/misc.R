@@ -32,7 +32,7 @@ gen_vars_table <- function(pctch, sug) {
   op <- list(searching = F, paging = F, bInfo = F, ordering = F, autoWidth = T)
   sels <- matrix(c(rep(1, sug), 1:sug - 1), sug)
   capt <- tags$caption(style = 'caption-side: bottom; text-align: center;',
-                       em('Selected variables'))
+                       em('Select variables by clicking the corresponding columns'))
   col_brks <- with(get_col_brks(), styleInterval(breaks, pal))
   datatable(
     data = arr,
@@ -49,6 +49,31 @@ proj_singles <- function(fit, x) {
     proj_linpred(fit, x[, i, drop = F], transform = T, integrated = T,
                       vind = i, ns = 100)
   }) %>% as_tibble()
+}
+
+get_css_settings <- function() {
+"
+  table.dataTable tr.selected td, table.dataTable td.selected {
+    border: 1px solid black;
+    font-weight: bold;
+  }
+  table thead th {
+    padding: 50px 0px 0px 0px !important;
+    transform: rotate(315deg) translate(-10px, -8px);
+    -webkit-transform: rotate(315deg) translate(-10px, -8px);
+    -ms-transform: rotate(315deg) translate(-10px, -8px);
+    table-layout: fixed !important;
+    width: 35px !important;
+    border-bottom: 0px !important;
+  }
+  table {
+    width: 0px !important;
+    table-layout: fixed !important;
+  }
+  .main-sidebar {
+    background-color: #ECF0F5 !important;
+  }
+"
 }
 
 validate_varsel <- function(fit_cv) {
