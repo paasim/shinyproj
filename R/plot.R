@@ -11,11 +11,10 @@ cl_2d_plot <- function(cl, sel) {
   ggplot(cl$hulls, aes_(x = ~x, y = ~y)) +
     geom_polygon(aes_(color = ~grp), fill = NA) +
     geom_polygon(aes_(fill = ~grp, alpha = ~(sim * sel_grp))) +
-    geom_point(aes_(size = ~sel_pt), cl$pts) +
+    geom_point(data = cl$pts) +
     geom_label_repel(aes_(label = ~lab, fontface = ~sel_ff), cl$pts,
                      point.padding = unit(0.5, "lines"), size = 3.5) +
     scale_alpha_continuous(range = range(cl$hulls$sim * sel_grp)) +
-    scale_size_continuous(range = c(1, 2)) +
     guides(color = "none", fill = "none", size = "none", alpha = "none") +
     labs(x = "", y = "") +
     theme_default() +

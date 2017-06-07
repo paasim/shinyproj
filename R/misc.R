@@ -12,36 +12,37 @@ extract_data <- function(fit, nv) {
   cl_2d <- hc_to_clusters(hc, cmd, fit$varsel$vind, fit$varsel$ssize)
   cl_dend <- hc2arr(hc, fit$varsel$vind)
 
-  a <- 0.1
-  stat_arr <- boot_stats(fit$varsel, 1:nv, a)
+  stat_arr <- boot_stats(fit$varsel, 1:nv, alpha = 0.1)
   proj <- project(fit, nv = seq_along(ch), ns = 100)
 
-  pctch <- round(fit$varsel$pctch, 2) %>% as_tibble()
+  pctch <- round(fit$varsel$pctch, 2)
   pct <- get_pct_arr(pctch, nv)
 
   list(fit = fit, nv = nv, x = x, ch = ch, cl_2d = cl_2d, cl_dend = cl_dend,
-       stat_arr = stat_arr, a = a, proj = proj, pctch = pctch, pct = pct)
+       stat_arr = stat_arr, proj = proj, pctch = pctch, pct = pct)
 }
 
 get_pct_arr <- function(pctch, nv) {
-  gather(pctch[1:nv, ], 'var', 'val', names(pctch)[1:nv+1], factor_key = T)
+  as_tibble(pctch[1:nv, ]) %>%
+    gather("var", "val", colnames(pctch)[1:nv+1], factor_key = T)
 }
 
-gen_vars_table <- function(pctch, sug) {
-  arr <- pctch[sug, -1]
-  op <- list(searching = F, paging = F, bInfo = F, ordering = F, autoWidth = T)
-  sels <- matrix(c(rep(1, sug), 1:sug - 1), sug)
-  capt <- tags$caption(style = 'caption-side: bottom; text-align: center;',
-                       em('Select variables by clicking the corresponding columns'))
+gen_vars_table <- function(pctch, size, transpose) {
+  arr <- pctch[size, -1, drop = FALSE]
+  rownames(arr) <- NULL #"% selected"
+
+  opt <- list(searching = FALSE, paging = FALSE, bInfo = FALSE,
+              ordering = FALSE, autoWidth = TRUE)
   col_brks <- with(get_col_brks(), styleInterval(breaks, pal))
-  datatable(
-    data = arr,
-    options = op,
-    class = 'compact',
-    rownames = F,
-    caption = capt,
-    selection = list(mode = 'multiple', target = 'cell', selected = sels)) %>%
-    formatStyle(names(arr), backgroundColor = col_brks)
+  cb <- get_sel_callback()
+  capt <- em("Select variables by clicking the corresponding columns") %>%
+    tags$caption(style = "caption-side: bottom; text-align: center;")
+
+  if (transpose) arr <- t(arr)
+
+  datatable(arr, opt, "compact", cb, caption = capt, selection = "none") %>%
+    formatStyle(colnames(arr), backgroundColor = col_brks) %>%
+    formatStyle(colnames(arr), cursor = "pointer")
 }
 
 proj_singles <- function(fit, x) {
@@ -51,11 +52,25 @@ proj_singles <- function(fit, x) {
   }) %>% as_tibble()
 }
 
+get_selector <- function(inds = NULL) {
+  sel <- "$(DataTables_Table_0_wrapper).find('td')"
+  if (!is.null(inds)) sel <- paste0(sel, ".eq(", inds - 1, ")")
+  sel
+}
+
+get_sel_callback <- function() {
+  JS("table.on('click.dt', 'td',
+        function() {
+          var row_=table.cell(this).index().row;
+          var col=table.cell(this).index().column;
+          Shiny.onInputChange('vars_click', [row_, col, Math.random()]);
+     });")
+}
+
 get_css_settings <- function() {
-"
-  table.dataTable tr.selected td, table.dataTable td.selected {
-    border: 1px solid black;
-    font-weight: bold;
+  "
+  td.dt-right.selected-custom {
+    border: 2px solid black;
   }
   table thead th {
     padding: 50px 0px 0px 0px !important;
@@ -73,7 +88,7 @@ get_css_settings <- function() {
   .main-sidebar {
     background-color: #ECF0F5 !important;
   }
-"
+  "
 }
 
 validate_varsel <- function(fit_cv) {
