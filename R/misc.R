@@ -61,9 +61,9 @@ get_selector <- function(inds = NULL) {
 get_sel_callback <- function() {
   JS("table.on('click.dt', 'td',
         function() {
-          var row_=table.cell(this).index().row;
-          var col=table.cell(this).index().column;
-          Shiny.onInputChange('vars_click', [row_, col, Math.random()]);
+          var row = table.cell(this).index().row;
+          var col = table.cell(this).index().column;
+          Shiny.onInputChange('vars_click', [row, col, Math.random()]);
      });")
 }
 
