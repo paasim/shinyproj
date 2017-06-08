@@ -15,7 +15,7 @@
 #' @importFrom grid unit.pmax
 #' @importFrom gtable gtable gtable_add_grob
 #' @importFrom htmltools div em HTML h3 h4 h5 tags
-#' @importFrom magrittr "%>%"
+#' @importFrom magrittr "%>%" "%<>%"
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom rstanarm get_x
 #' @importFrom scales pretty_breaks

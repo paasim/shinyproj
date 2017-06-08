@@ -14,6 +14,12 @@ varsel_explore <- function(fit_cv, nv = min(12, length(fit_cv$varsel$vind))) {
     stop("Input does not contain cross-validated variable selection information.")
 
   server_data <- extract_data(fit_cv, nv)
+  if (is.null(.GlobalEnv$.shinyproj_logs)) {
+    .GlobalEnv$.shinyproj_logs <-
+      tibble(cur = list(), new = list(),
+             type = character(0), time = character(0))
+  }
+  log_event(empty_numeric(), empty_numeric(), "start")
 
   app <- list(ui = get_ui(), server = get_server(server_data))
   runApp(app)

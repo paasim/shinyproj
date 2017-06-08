@@ -15,15 +15,17 @@ get_server <- function(data) {
     })
 
     observeEvent(input$vars_click, {
-      print(input$vars_click)
       ind <- input$vars_click[2] + 1
       if (ind < 0) return()
       match_ind <- val$sel == data$ch[ind]
+      cur <- isolate(val$sel)
       if (any(match_ind)) {
         val$sel <- val$sel[!match_ind]
       } else {
         val$sel <- c(val$sel, data$ch[ind])
       }
+
+      log_event(cur, isolate(val$sel), "local")
       paste0(get_selector(ind), ".toggleClass('selected-custom')") %>% runjs()
     })
 
@@ -34,6 +36,8 @@ get_server <- function(data) {
       dataTableAjax(session, data$pctch[sizeval, -1, drop = F],
                     rownames = F, outputId = 'vars')
       reloadData(proxy_vars, resetPaging = T)
+
+      log_event(isolate(val$sel), data$ch[1:sizeval], "global")
       val$sel <- data$ch[1:sizeval]
     })
 
@@ -45,7 +49,7 @@ get_server <- function(data) {
         lapply(runjs)
     })
 
-    val <- reactiveValues(sel = c(' ' = 0)[-1]) # empty named numeric
+    val <- reactiveValues(sel = c(" " = NA)[-1]) # empty named numeric
     perf_hidden <- reactiveValues(val = 0)
     sel_quick <- reactive(val$sel)
     sel <- sel_quick %>% debounce(1000)

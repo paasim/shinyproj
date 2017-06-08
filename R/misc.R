@@ -94,9 +94,18 @@ get_css_settings <- function() {
   "
 }
 
+log_event <- function(cur, new, type) {
+  .GlobalEnv$.shinyproj_logs %<>%
+    bind_rows(tibble(cur = list(cur), new = list(new),
+                     type = type, time = date()))
+  NULL
+}
+
 validate_varsel <- function(fit_cv) {
   !is.null(fit_cv$varsel$ssize)
 }
+
+empty_numeric <- function() c("a" = 0)[-1]
 
 .onAttach <- function(...) {
   ver <- utils::packageVersion("shinyproj")
