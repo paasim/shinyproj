@@ -88,6 +88,9 @@ get_css_settings <- function() {
   .main-sidebar {
     background-color: #ECF0F5 !important;
   }
+  #global img {
+    cursor : pointer;
+  }
   "
 }
 

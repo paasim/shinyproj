@@ -41,13 +41,17 @@ cl_dend_plot <- function(cl, sel) {
 
 pairs_plot <- function(pairs) {
   ggplot(pairs, aes_(x = ~x1, y = ~x2)) +
-    geom_point() +
+    geom_point(size = 0.5, alpha = 0.4) +
     geom_smooth(color = "darkred", method = "lm", formula = y ~ x, se = F) +
     facet_grid(n2 ~ n1) +
+    scale_x_continuous(breaks = pretty_breaks(2)) +
+    scale_y_continuous(breaks = pretty_breaks(2)) +
     labs(x = "", y = "") +
     theme_default() +
     theme_proj() +
-    theme(axis.text = element_text(color = "white"))
+    theme(strip.text.x = element_text(angle = -90),
+          strip.text.y = element_text(angle = 0),
+          axis.text = element_text(size = 10))
 }
 
 ppd_plot <- function(ppd, y) {
@@ -195,6 +199,31 @@ gtable_stack <- function(g1, g2) {
   g1$layout$name <- "g2"
   g1$layout <- rbind(g1$layout, g2$layout)
   g1
+}
+
+plots_to_grid <- function(w_grid) {
+  w_box <- 350
+  {
+    fluidRow(
+      box(plotOutput("clust_dend", height = "auto", width = w_box),
+          collapsible = TRUE, width = w_grid,
+          title = "Dendogram of the single variable model predictions"),
+      box(plotOutput("clust_2d", height = "auto", width = w_box),
+          collapsible = TRUE, width = w_grid,
+          title = "Scatterplot of the single variable model predictions"),
+      box(plotOutput("hist", height = "auto", width = w_box),
+          collapsible = TRUE, width = w_grid,
+          title = "Histogram of the selected variables"),
+      box(plotOutput("pairs", height = "auto", width = w_box),
+          collapsible = TRUE, width = w_grid,
+          title = "Pairs plot of the selected variables"),
+      box(plotOutput("diff", height = "auto", width = w_box),
+          collapsible = TRUE, width = w_grid,
+          title = "Performance difference to the best model of same size"),
+      box(plotOutput("ppd", height = "auto", width = w_box),
+          collapsible = TRUE, width = w_grid,
+          title = "Predictive distribution of the selected model"))
+  }
 }
 
 theme_proj <- function() {

@@ -10,6 +10,7 @@ get_server <- function(data) {
                          'gaussian' = 'mse', 'binomial' = 'pctcorr', 'mlpd')))
 
     observeEvent(input$toggleSidebar, {
+      perf_hidden$val <- 1 - isolate(perf_hidden$val)
       toggleClass(selector = "body", class = "sidebar-collapse")
     })
 
@@ -45,6 +46,7 @@ get_server <- function(data) {
     })
 
     val <- reactiveValues(sel = c(' ' = 0)[-1]) # empty named numeric
+    perf_hidden <- reactiveValues(val = 0)
     sel_quick <- reactive(val$sel)
     sel <- sel_quick %>% debounce(1000)
 
@@ -92,19 +94,26 @@ get_server <- function(data) {
 
     # Smaller plots
     output$diff <- renderPlot(
-      if (!is.null(sel_diff())) diff_plot(sel_diff(), stat(), length(sel()))
-    )
-    output$clust_2d <- renderPlot(cl_2d_plot(data$cl_2d, sel()))
-    output$clust_dend <- renderPlot(cl_dend_plot(data$cl_d, sel()))
+      if (!is.null(sel_diff())) diff_plot(sel_diff(), stat(), length(sel())),
+      height = function() session$clientData$output_diff_width)
+    output$clust_2d <- renderPlot(
+      cl_2d_plot(data$cl_2d, sel()),
+      height = function() session$clientData$output_clust_2d_width)
+    output$clust_dend <- renderPlot(
+      cl_dend_plot(data$cl_d, sel()),
+      height = function() session$clientData$output_clust_dend_width)
     output$hist <- renderPlot(
-      if (!is.null(sel_hist())) hist_plot(sel_hist())
-    )
+      if (!is.null(sel_hist())) hist_plot(sel_hist()),
+      height = function() session$clientData$output_hist_width)
     output$pairs <- renderPlot(
-     if (!is.null(sel_pairs())) pairs_plot(sel_pairs())
-    )
+      if (!is.null(sel_pairs())) pairs_plot(sel_pairs()),
+      height = function() session$clientData$output_pairs_width)
     output$ppd <- renderPlot(
-      if (!is.null(sel_ppd())) ppd_plot(sel_ppd(), data$fit$varsel$d_test$y)
-    )
+      if (!is.null(sel_ppd())) ppd_plot(sel_ppd(), data$fit$varsel$d_test$y),
+      height = function() session$clientData$output_ppd_width)
+
+    w_grid <- reactive(ifelse(perf_hidden$val, 4, 6))
+    output$plots <- renderUI(plots_to_grid(w_grid()))
 
     session$onSessionEnded(stopApp)
   }
