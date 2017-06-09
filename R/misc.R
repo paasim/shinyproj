@@ -8,14 +8,14 @@ extract_data <- function(fit, nv) {
   dfun <- function(x) 1 - cor(x)
   proj_dist <- proj_singles(fit, x) %>% dfun() %>% as.dist()
   hc <- hclust(proj_dist)
-  cmd <- cmdscale(proj_dist)
-  cl_2d <- hc_to_clusters(hc, cmd, fit$varsel$vind, fit$varsel$ssize)
+  cl_2d <- hc_to_clusters(hc, proj_dist, fit$varsel$vind, fit$varsel$ssize)
   cl_dend <- hc2arr(hc, fit$varsel$vind)
 
   stat_arr <- boot_stats(fit$varsel, 1:nv, alpha = 0.1)
   proj <- project(fit, nv = seq_along(ch), ns = 100)
 
   pctch <- round(fit$varsel$pctch, 2)
+  colnames(pctch)[1] <- ".size"
   pct <- get_pct_arr(pctch, nv)
 
   list(fit = fit, nv = nv, x = x, ch = ch, cl_2d = cl_2d, cl_dend = cl_dend,
@@ -23,13 +23,13 @@ extract_data <- function(fit, nv) {
 }
 
 get_pct_arr <- function(pctch, nv) {
-  as_tibble(pctch[1:nv, ]) %>%
+  as_tibble(pctch[1:nv, 1:(nv + 1)]) %>%
     gather("var", "val", colnames(pctch)[1:nv+1], factor_key = T)
 }
 
 gen_vars_table <- function(pctch, size, transpose) {
   arr <- pctch[size, -1, drop = FALSE]
-  rownames(arr) <- NULL #"% selected"
+  rownames(arr) <- NULL
 
   opt <- list(searching = FALSE, paging = FALSE, bInfo = FALSE,
               ordering = FALSE, autoWidth = TRUE)

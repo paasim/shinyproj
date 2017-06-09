@@ -5,16 +5,18 @@ included <- function(x, y) any(y %in% x)
 cl_2d_plot <- function(cl, sel) {
   grps <- sapply(cl$inds, included, sel) %>% which()
   sel_grp <- match(x = cl$hulls$grp, table = grps, nomatch = 0) > 0
-  sel_pt <- cl$pts$ind %in% sel + 0
+  pts_lab <- cl$pts[1:min(20, nrow(cl$pts)),]
+  sel_pt <- pts_lab$ind %in% sel + 0
   sel_ff <- ifelse(sel_pt, "bold", "plain")
+  alpha <- ((cl$hulls$sim + 1) * sel_grp) / 2
 
   ggplot(cl$hulls, aes_(x = ~x, y = ~y)) +
     geom_polygon(aes_(color = ~grp), fill = NA) +
-    geom_polygon(aes_(fill = ~grp, alpha = ~(sim * sel_grp))) +
+    geom_polygon(aes_(fill = ~grp, alpha = ~alpha)) +
     geom_point(data = cl$pts) +
-    geom_label_repel(aes_(label = ~lab, fontface = ~sel_ff), cl$pts,
-                     point.padding = unit(0.5, "lines"), size = 3.5) +
-    scale_alpha_continuous(range = range(cl$hulls$sim * sel_grp)) +
+    geom_label_repel(aes_(x = ~x, y = ~y, label = ~lab, fontface = ~sel_ff),
+                     pts_lab, point.padding = unit(0.5, "lines"), size = 3.5) +
+    scale_alpha_continuous(range = range(alpha)) +
     guides(color = "none", fill = "none", size = "none", alpha = "none") +
     labs(x = "", y = "") +
     theme_default() +
@@ -80,7 +82,8 @@ hist_plot <- function(hist) {
     scale_x_continuous(breaks = pretty_breaks(n = 3)) +
     theme_bw() +
     theme_proj() +
-    theme(axis.text.y = element_text(color = "white"),
+    theme(axis.text = element_text(size = 10),
+          axis.text.y = element_text(color = "white"),
           axis.ticks.y = element_line(color = "white"))
 }
 
@@ -126,13 +129,13 @@ gen_heat_bg <- function(pct, col, rows) {
   col_brks <- get_col_brks()
   pct$val_grp <- as.character(sapply(pct$val, function(x) sum(x >= col_brks$breaks)))
   if (identical(rows, 0)) rows <- pct$var[1]
-  pct$sel <- (pct$size == col) & (pct$var %in% rows)
+  pct$sel <- (pct$.size == col) & (pct$var %in% rows)
   brks <- sort(unique(as.numeric(pct$val_grp)) + 1)
 
-  (ggplot(pct, aes_(x = ~size, y = ~var)) +
+  (ggplot(pct, aes_(x = ~.size, y = ~var)) +
       geom_tile(aes_(fill = ~val_grp, color = ~sel),
                 width = 1, height = 0.9, size = 1) +
-      facet_grid(. ~ size, scales = "free_x", switch = "x") +
+      facet_grid(. ~ .size, scales = "free_x", switch = "x") +
       geom_text(aes_(label = ~val, fontface = ~sel+1)) +
       coord_cartesian(expand = FALSE) +
       scale_y_discrete(limits = rev(levels(pct$var))) +
@@ -151,9 +154,9 @@ gen_heat_bg <- function(pct, col, rows) {
 
 gen_dummy_bg <- function(pct, inds) {
   len <- ifelse(identical(inds, 0), 0, length(inds))
-  (ggplot(pct, aes_(x = ~size, y = ~var)) +
-      facet_grid(. ~ size, scales = "free_x", switch = "x") +
-      geom_rect(aes_(fill = (~size == len)),
+  (ggplot(pct, aes_(x = ~.size, y = ~var)) +
+      facet_grid(. ~ .size, scales = "free_x", switch = "x") +
+      geom_rect(aes_(fill = (~.size == len)),
                 xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
       scale_fill_manual(values = c("#F6F6F6", "#B1BED9")) +
       coord_cartesian(expand = FALSE) +
@@ -227,10 +230,10 @@ plots_to_grid <- function(w_grid) {
 }
 
 theme_proj <- function() {
-  theme(axis.text = element_text(size = 18),
-        axis.title = element_text(size = 18),
-        strip.text = element_text(size = 18),
-        plot.title = element_text(size = 18, face = "bold", hjust = 0.6))
+  theme(axis.text = element_text(size = 15),
+        axis.title = element_text(size = 15),
+        strip.text = element_text(size = 15),
+        plot.title = element_text(size = 15, face = "bold", hjust = 0.6))
 }
 
 get_col_brks <- function() {

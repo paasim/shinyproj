@@ -53,17 +53,25 @@ hc_to_sets <- function(hc, k) {
   list(inds = c(sets, missing), dists = c(dist_sets, rep(0, length(missing))))
 }
 
-hc_to_clusters <- function(hc, cmd, vind, k) {
+hc_to_clusters <- function(hc, dists, vind, k) {
+  cmd <- cmdscale(dists)
   sets <- hc_to_sets(hc, k)
+
+  # find the min distance between the clusters
+  ids <- combn(1:nrow(cmd), 2, simplify = FALSE) %>%
+    vapply(function(x, set) {
+      # are the sets in which x[1] and x[2] belong to identical
+      any(vapply(set, function(s) (x[1] %in% s) - (x[2] %in% s), integer(1)))
+    }, logical(1), sets$inds)
+  r <- min(c(dists)[ids])
+
   pts <- tibble(x = cmd[, 1], y = cmd[, 2], ind = vind, lab = rownames(cmd))
-
-  r <- min(sets$dists[sets$dists>0])/2
-  hulls <- lapply(sets$inds, function(rows, arr) {
-    circ <- circle(arr[rows, , drop = F], r = r)
+  hulls <- lapply(sets$inds, function(rows) {
+    circ <- circle(cmd[rows, , drop = F], r/3)
     as_tibble(rbind(circ, circ[1, ])) %>% setNames(c('x', 'y'))
-  }, cmd) %>% bind_rows(.id = "grp")
-  hulls$sim <- 1 - sets$dists[as.numeric(hulls$grp)]
+  }) %>% bind_rows(.id = "grp")
 
+  hulls$sim <- 1 - sets$dists[as.numeric(hulls$grp)]
   inds <- lapply(sets$inds, function(x) vind[x])
 
   list(pts = pts, hulls = hulls, inds = inds, order = hc$order)
