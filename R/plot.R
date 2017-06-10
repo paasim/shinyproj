@@ -8,7 +8,7 @@ cl_2d_plot <- function(cl, sel) {
   pts_lab <- cl$pts[1:min(20, nrow(cl$pts)),]
   sel_pt <- pts_lab$ind %in% sel + 0
   sel_ff <- ifelse(sel_pt, "bold", "plain")
-  alpha <- ((cl$hulls$sim + 1) * sel_grp) / 2
+  alpha <- ((cl$hulls$sim + 1) * sel_grp) / 3
 
   ggplot(cl$hulls, aes_(x = ~x, y = ~y)) +
     geom_polygon(aes_(color = ~grp), fill = NA) +

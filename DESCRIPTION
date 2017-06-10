@@ -1,6 +1,6 @@
 Package: shinyproj
 Title: Interactive model selection using projpred
-Version: 0.1.4.2
+Version: 0.1.5
 Author:
     Markus Paasiniemi [aut]
 Maintainer:
@@ -33,7 +33,6 @@ Imports:
 Remotes:
     github::stan-dev/projpred,
     github::paasim/circlr,
-    github::tidyverse/dplyr
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
