@@ -67,8 +67,8 @@ hc_to_clusters <- function(hc, dists, vind, k) {
 
   pts <- tibble(x = cmd[, 1], y = cmd[, 2], ind = vind, lab = rownames(cmd))
   hulls <- lapply(sets$inds, function(rows) {
-    circ <- circle(cmd[rows, , drop = F], r/3)
-    as_tibble(rbind(circ, circ[1, ])) %>% setNames(c('x', 'y'))
+    circle(cmd[rows, , drop = F], r/3, dupl_first = TRUE) %>%
+      as_tibble() %>% setNames(c('x', 'y'))
   }) %>% bind_rows(.id = "grp")
 
   hulls$sim <- 1 - sets$dists[as.numeric(hulls$grp)]

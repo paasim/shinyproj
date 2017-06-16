@@ -1,6 +1,6 @@
 Package: shinyproj
 Title: Interactive model selection using projpred
-Version: 0.1.5
+Version: 0.1.5.1
 Author:
     Markus Paasiniemi [aut]
 Maintainer:
@@ -11,7 +11,7 @@ Depends:
     R (>= 3.1.2)
 Imports:
     bayesplot,
-    circlr (>= 0.1.1),
+    circlr (>= 0.1.2),
     dplyr (>= 0.6.0),
     DT (>= 0.2),
     ggplot2 (>= 2.2.1),

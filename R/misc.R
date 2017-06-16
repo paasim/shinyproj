@@ -8,7 +8,8 @@ extract_data <- function(fit, nv) {
   dfun <- function(x) 1 - cor(x)
   proj_dist <- proj_singles(fit, x) %>% dfun() %>% as.dist()
   hc <- hclust(proj_dist)
-  cl_2d <- hc_to_clusters(hc, proj_dist, fit$varsel$vind, fit$varsel$ssize)
+  nc_2d <- min(fit$varsel$ssize, 5) # at most 5 clusters
+  cl_2d <- hc_to_clusters(hc, proj_dist, fit$varsel$vind, nc_2d)
   cl_dend <- hc2arr(hc, fit$varsel$vind)
 
   stat_arr <- boot_stats(fit$varsel, 1:nv, alpha = 0.1)
