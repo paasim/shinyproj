@@ -14,7 +14,7 @@ cl_2d_plot <- function(cl, sel) {
     geom_polygon(aes_(color = ~grp), fill = NA) +
     geom_polygon(aes_(fill = ~grp, alpha = ~alpha)) +
     geom_point(data = cl$pts) +
-    geom_label_repel(aes_(x = ~x, y = ~y, label = ~lab, fontface = ~sel_ff),
+    geom_label_repel(aes_(x = ~x, y = ~y, label = ~lab, fontface = ~sel_ff, size = ~sel_ff),
                      pts_lab, point.padding = unit(0.5, "lines"), size = 3.5) +
     scale_alpha_continuous(range = range(alpha)) +
     guides(color = "none", fill = "none", size = "none", alpha = "none") +
@@ -46,12 +46,12 @@ pairs_plot <- function(pairs) {
     geom_point(size = 0.5, alpha = 0.4) +
     geom_smooth(color = "darkred", method = "lm", formula = y ~ x, se = F) +
     facet_grid(n2 ~ n1) +
-    scale_x_continuous(breaks = pretty_breaks(2)) +
-    scale_y_continuous(breaks = pretty_breaks(2)) +
+    scale_x_continuous(breaks = pretty_breaks(3)) +
+    scale_y_continuous(breaks = pretty_breaks(3)) +
     labs(x = "", y = "") +
     theme_default() +
     theme_proj() +
-    theme(strip.text.x = element_text(angle = -90),
+    theme(strip.text.x = element_text(angle = 0),
           strip.text.y = element_text(angle = 0),
           axis.text = element_text(size = 10))
 }
