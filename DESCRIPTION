@@ -1,6 +1,6 @@
 Package: shinyproj
 Title: Interactive model selection using projpred
-Version: 0.1.6
+Version: 0.1.7
 Author:
     Markus Paasiniemi [aut]
 Maintainer:

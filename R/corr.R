@@ -83,5 +83,7 @@ pairs_fun <- function(x, sel) {
       tibble(x1 = x[, i[1]], x2 = x[, i[2]],
              n1 = rep(x = names(i)[1], nrow(x)),
              n2 = rep(x = names(i)[2], nrow(x)))
-    ) %>% bind_rows()
+    ) %>% bind_rows() %>%
+    mutate(n1 = factor(n1, levels = unique(n1)),
+           n2 = factor(n2, levels = unique(n2)))
 }
