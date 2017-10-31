@@ -6,7 +6,9 @@ An R package for interactive model selection using [projpred][].
 
 Installation
 ------------
+`shinyproj` depends on the `circlr`-package, which can be installed from github. Other dependencies should be installed automatically from CRAN.
 
+    devtools::install_github('paasim/circlr')
     devtools::install_github('paasim/shinyproj')
 
 
