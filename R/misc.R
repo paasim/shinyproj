@@ -73,7 +73,7 @@ get_css_settings <- function() {
     border: 2px solid black;
   }
   table thead th {
-    padding: 50px 0px 0px 0px !important;
+    padding: 10% 0px 0px 0px !important;
     transform: rotate(315deg) translate(-10px, -8px);
     -webkit-transform: rotate(315deg) translate(-10px, -8px);
     -ms-transform: rotate(315deg) translate(-10px, -8px);
