@@ -78,12 +78,13 @@ hc_to_clusters <- function(hc, dists, vind, k) {
 }
 
 pairs_fun <- function(x, sel) {
-  combn(sel, 2, simplify = F) %>%
+  res <- combn(sel, 2, simplify = F) %>%
     lapply(function(i)
       tibble(x1 = x[, i[1]], x2 = x[, i[2]],
              n1 = rep(x = names(i)[1], nrow(x)),
              n2 = rep(x = names(i)[2], nrow(x)))
-    ) %>% bind_rows() %>%
-    mutate(n1 = factor(n1, levels = unique(n1)),
-           n2 = factor(n2, levels = unique(n2)))
+    ) %>% bind_rows()# %>%
+  res$n1 <- factor(res$n1, levels = unique(res$n1))
+  res$n2 <- factor(res$n2, levels = unique(res$n2))
+  res
 }

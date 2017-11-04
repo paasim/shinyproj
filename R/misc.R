@@ -89,7 +89,7 @@ get_css_settings <- function() {
     background-color: #ECF0F5 !important;
   }
   #global img {
-    cursor : pointer;
+    padding: 105px 0px 0px 0px !important;
   }
   "
 }

@@ -9,9 +9,7 @@ get_ui <- function() {
     dashboardHeader(disable = TRUE),
     dashboardSidebar(
       width = w_sb,
-      plotOutput("global", width = w_sb, height = 850, click = "size_click"),
-      div(em("Select a suggested model by clicking a column corresponding to",
-             "the desired model size."), align = "center", style = "color:grey")
+      plotOutput("global", width = w_sb, height = 850)
     ),
     dashboardBody(
       useShinyjs(),

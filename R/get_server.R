@@ -30,29 +30,32 @@ get_server <- function(data) {
     })
 
 
-    observeEvent(input$size_click, {
-      sizeval <- ceiling((input$size_click$x - 0.13)/0.9*data$nv)
-      if (is.null(sizeval) || sizeval < 1 || sizeval > data$nv) return()
-      dataTableAjax(session, data$pctch[sizeval, -1, drop = F],
+    observeEvent(sel(), {
+      dataTableAjax(session, data$pctch[length(sel()), -1, drop = F],
                     rownames = F, outputId = 'vars')
-      reloadData(proxy_vars, resetPaging = T)
-
-      log_event(isolate(val$sel), data$ch[1:sizeval], "global")
-      val$sel <- data$ch[1:sizeval]
+      reloadData(proxy_vars)
     })
 
-    observeEvent(sel(), {
-      runjs(paste0(get_selector(), ".removeClass('selected-custom')"))
-      which(data$ch %in% sel()) %>%
+    # reapply selected-classes every 50 ms since updating values
+    # on the expression above would otherwise remove them.
+    observe({
+      invalidateLater(50, session)
+      which(data$ch %in% val$sel) %>%
         get_selector() %>%
         paste0(".addClass('selected-custom')") %>%
         lapply(runjs)
     })
 
-    val <- reactiveValues(sel = c(" " = NA)[-1]) # empty named numeric
+    val <- reactiveValues(sel = c(" " = NA)[-1]) # init with empty named num
     perf_hidden <- reactiveValues(val = 0)
     sel_quick <- reactive(val$sel)
     sel <- sel_quick %>% debounce(1000)
+
+    # Select variables
+    output$vars <- renderDataTable(
+      gen_vars_table(data$pctch, data$fit$varsel$ssize, FALSE)
+    )
+    proxy_vars <- dataTableProxy(session$ns("vars"))
 
     # pairs for correlation-scatterplots
     sel_pairs <- reactive(
@@ -78,12 +81,6 @@ get_server <- function(data) {
         eval_stat(sel_proj(), sug_proj(), data$x, data$fit$varsel$d_test, stat())
     )
     stat_diff <- reactive(if (is.null(sel_diff())) 0 else mean(sel_diff()))
-
-    # Select variables
-    output$vars <- renderDataTable(
-      gen_vars_table(data$pctch, data$fit$varsel$ssize, FALSE)
-    )
-    proxy_vars <- dataTableProxy(session$ns("vars"))
 
     # "Global" plot
     perf <- reactive(
@@ -120,5 +117,6 @@ get_server <- function(data) {
     output$plots <- renderUI(plots_to_grid(w_grid()))
 
     session$onSessionEnded(stopApp)
+
   }
 }

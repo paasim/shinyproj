@@ -19,9 +19,10 @@
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom rstanarm get_x
 #' @importFrom scales pretty_breaks
-#' @importFrom shiny actionButton column debounce fluidPage fluidRow isolate
-#' observeEvent plotOutput radioButtons reactive reactiveValues renderPlot
-#' renderText renderUI runApp selectInput stopApp uiOutput
+#' @importFrom shiny actionButton column debounce fluidPage fluidRow
+#' invalidateLater isolate observe observeEvent plotOutput radioButtons
+#' reactive reactiveValues renderPlot renderText renderUI runApp selectInput
+#' stopApp uiOutput
 #' @importFrom shinydashboard box dashboardBody dashboardHeader dashboardPage
 #' dashboardSidebar
 #' @importFrom shinyjs runjs toggleClass useShinyjs
