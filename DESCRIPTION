@@ -32,8 +32,7 @@ Imports:
     tidyr,
     utils
 Remotes:
-    github::stan-dev/projpred,
-    github::paasim/circlr,
+    github::paasim/circlr
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
