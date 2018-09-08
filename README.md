@@ -36,7 +36,7 @@ Usage
     fit <- stan_glm(y ~ ., data = df_diabetes, prior = prior_coeff)
 
     # perform the cross-validated variable selection
-    fit_cv <- cv_varsel(fit)
+    fit_cv <- cv_varsel(fit, nloo = n)
 
     # explore the results
     varsel_explore(fit_cv)
