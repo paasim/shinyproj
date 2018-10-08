@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/paasim/shinyproj.svg?branch=development)](https://travis-ci.org/paasim/shinyproj)
 
+NOTE: THIS PACKAGE IS ARCHIVED AS IT DOES NOT (AND MAY NOT, AT LEAST IN THE NEAR FUTURE, BE UPDATED TO) SUPPORT THE CURRENT VERSION OF PROJPRED. PREVIOUS VERSIONS OF PROJPRED (E.G. 0.8) WILL STILL WORK.
+
 An R package for interactive model selection using [projpred][].
 
 Installation
